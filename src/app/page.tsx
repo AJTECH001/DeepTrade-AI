@@ -1,42 +1,22 @@
 "use client";
 
-import { AccountInfo } from "@/components/AccountInfo";
-import { Header } from "@/components/Header";
-import { MessageBoard } from "@/components/MessageBoard";
-import { NetworkInfo } from "@/components/NetworkInfo";
-import { TopBanner } from "@/components/TopBanner";
-import { TransferAPT } from "@/components/TransferAPT";
-import { WalletDetails } from "@/components/WalletDetails";
-// Internal Components
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { useWallet } from "@aptos-labs/wallet-adapter-react";
+import { useEffect } from "react";
+import { useRouter } from "next/navigation";
 
-function App() {
-  const { connected } = useWallet();
+export default function HomePage() {
+  const router = useRouter();
+
+  useEffect(() => {
+    // Redirect to landing page
+    router.push('/landing');
+  }, [router]);
 
   return (
-    <>
-    <TopBanner />
-      <Header />
-      <div className="flex items-center justify-center flex-col">
-        {connected ? (
-          <Card>
-            <CardContent className="flex flex-col gap-10 pt-6">
-              <WalletDetails />
-              <NetworkInfo />
-              <AccountInfo />
-              <TransferAPT />
-              <MessageBoard />
-            </CardContent>
-          </Card>
-        ) : (
-          <CardHeader>
-            <CardTitle>To get started Connect a wallet</CardTitle>
-          </CardHeader>
-        )}
+    <div className="min-h-screen bg-gradient-to-br from-neutral-900 via-neutral-950 to-black text-white font-sans flex items-center justify-center">
+      <div className="text-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500 mx-auto mb-4"></div>
+        <p className="text-neutral-300">Loading DeepTrade AI...</p>
       </div>
-    </>
+    </div>
   );
 }
-
-export default App;
