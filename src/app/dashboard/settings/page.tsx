@@ -14,7 +14,6 @@ import {
   Bell, 
   Wallet, 
   Key, 
-  Globe,
   Save,
   AlertTriangle
 } from "lucide-react";
