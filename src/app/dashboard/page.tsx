@@ -1,3 +1,5 @@
+"use client";
+
 import { TradingBotCreator } from "@/components/TradingBotCreator";
 import { UserBots } from "@/components/UserBots";
 import { Leaderboard } from "@/components/Leaderboard";
