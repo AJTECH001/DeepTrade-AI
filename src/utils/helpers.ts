@@ -9,3 +9,8 @@ export const isValidNetworkName = (network: NetworkInfo | null) => {
   // we resolve it as a valid network name
   return true;
 };
+
+export const formatAddress = (address: string): string => {
+  if (!address) return "";
+  return `${address.slice(0, 6)}...${address.slice(-4)}`;
+};
