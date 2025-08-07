@@ -4,7 +4,6 @@ import { useQuery } from "@tanstack/react-query";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { formatAddress } from "@/utils/helpers";
 
 interface BotPerformance {
   botId: number;
@@ -20,7 +19,7 @@ interface BotPerformance {
   lastTradeAt: number | null;
 }
 
-async function fetchUserBots(userAddress: string): Promise<BotPerformance[]> {
+async function fetchUserBots(_userAddress: string): Promise<BotPerformance[]> {
   // For demo purposes, we'll return mock data
   // In a real implementation, you would fetch from the API
   return [
@@ -56,10 +55,13 @@ async function fetchUserBots(userAddress: string): Promise<BotPerformance[]> {
 export function UserBots() {
   const { account } = useWallet();
 
+  // Convert AccountAddress to string
+  const userAddress = account?.address?.toString() || "";
+
   const { data: userBots, isLoading, error } = useQuery({
-    queryKey: ["userBots", account?.address],
-    queryFn: () => fetchUserBots(account?.address || ""),
-    enabled: !!account?.address,
+    queryKey: ["userBots", userAddress],
+    queryFn: () => fetchUserBots(userAddress),
+    enabled: !!userAddress,
     refetchInterval: 30000, // Refetch every 30 seconds
   });
 
@@ -183,4 +185,4 @@ export function UserBots() {
       </CardContent>
     </Card>
   );
-} 
+}

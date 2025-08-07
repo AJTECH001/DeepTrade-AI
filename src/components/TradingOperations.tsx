@@ -1,13 +1,12 @@
 "use client";
 import { useState } from "react";
-import { useWallet } from "@aptos-labs/wallet-adapter-react";
+
 import { useQuery } from "@tanstack/react-query";
 import { useToast } from "@/components/ui/use-toast";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 interface PriceData {
@@ -86,7 +85,7 @@ async function runBacktest(params: {
 }
 
 export function TradingOperations() {
-  const { account } = useWallet();
+
   const { toast } = useToast();
   const [selectedSymbol, setSelectedSymbol] = useState("BTC/USDC");
   const [backtestParams, setBacktestParams] = useState({

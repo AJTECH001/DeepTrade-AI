@@ -4,7 +4,7 @@ import { ReactNode, useState } from "react";
 import { DashboardHeader } from "./DashboardHeader";
 import { DashboardSidebar } from "./DashboardSidebar";
 import { Button } from "./ui/button";
-import { Menu, X } from "lucide-react";
+import { Menu } from "lucide-react";
 
 interface DashboardLayoutProps {
   children: ReactNode;
