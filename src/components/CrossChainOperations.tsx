@@ -137,8 +137,10 @@ export function CrossChainOperations() {
     try {
       const result = await bridgeUSDC({
         ...bridgeParams,
-        userAddress: account.address,
-        recipientAddress: bridgeParams.recipientAddress || account.address
+        userAddress: String(account.address),
+        recipientAddress: bridgeParams.recipientAddress
+          ? String(bridgeParams.recipientAddress)
+          : String(account.address),
       });
 
       toast({
@@ -176,12 +178,12 @@ export function CrossChainOperations() {
 
     setIsExecutingArbitrage(true);
     try {
-      const result = await executeArbitrage({
-        opportunityId,
-        amount: arbitrageParams.amount,
-        userAddress: account.address,
-        executeAutomatically: false
-      });
+      // const result = await executeArbitrage({
+      //   opportunityId,
+      //   amount: arbitrageParams.amount,
+      //   userAddress: account.address,
+      //   executeAutomatically: false
+      // });
 
       toast({
         title: "Arbitrage executed",
