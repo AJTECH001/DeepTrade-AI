@@ -167,41 +167,43 @@ export function CrossChainOperations() {
   };
 
   const handleExecuteArbitrage = async (opportunityId: string) => {
-    if (!account?.address) {
-      toast({
-        title: "Wallet not connected",
-        description: "Please connect your wallet to execute arbitrage.",
-        variant: "destructive",
-      });
-      return;
-    }
+  if (!account?.address) {
+    toast({
+      title: "Wallet not connected",
+      description: "Please connect your wallet to execute arbitrage.",
+      variant: "destructive",
+    });
+    return;
+  }
 
-    setIsExecutingArbitrage(true);
-    try {
-      // const result = await executeArbitrage({
-      //   opportunityId,
-      //   amount: arbitrageParams.amount,
-      //   userAddress: account.address,
-      //   executeAutomatically: false
-      // });
+  setIsExecutingArbitrage(true);
+  try {
+    const userAddress = account.address.toString();
 
-      toast({
-        title: "Arbitrage executed",
-        description: `Arbitrage opportunity ${opportunityId} has been executed.`,
-      });
+    await executeArbitrage({
+      opportunityId,
+      amount: arbitrageParams.amount,
+      userAddress,
+      executeAutomatically: false
+    });
 
-      // Refetch opportunities
-      refetchArbitrage();
-    } catch (error) {
-      toast({
-        title: "Arbitrage failed",
-        description: error instanceof Error ? error.message : "An error occurred",
-        variant: "destructive",
-      });
-    } finally {
-      setIsExecutingArbitrage(false);
-    }
-  };
+    toast({
+      title: "Arbitrage executed",
+      description: `Arbitrage opportunity ${opportunityId} has been executed.`,
+    });
+
+    // Refetch opportunities
+    refetchArbitrage();
+  } catch (error) {
+    toast({
+      title: "Arbitrage failed",
+      description: error instanceof Error ? error.message : "An error occurred",
+      variant: "destructive",
+    });
+  } finally {
+    setIsExecutingArbitrage(false);
+  }
+};
 
   const chains = ["aptos", "ethereum", "polygon", "arbitrum", "optimism"];
   const tokens = ["USDC", "USDT", "DAI"];
