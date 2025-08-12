@@ -105,7 +105,7 @@ export function TradingBotCreator() {
         <Button 
           onClick={handleCreateBot} 
           disabled={isCreating || !account?.address}
-          className="w-full"
+          className="w-full bg-[#051419]"
         >
           {isCreating ? "Creating Bot..." : "Create Trading Bot"}
         </Button>

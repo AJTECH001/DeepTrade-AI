@@ -106,7 +106,7 @@ export default function HelpPage() {
 
           <TabsContent value="faq" className="mt-6">
             <div className="space-y-6">
-              <Card className="bg-gray-800 border-gray-700">
+              <Card className="bg-[#051419] border-gray-700">
                 <CardHeader>
                   <CardTitle className="text-white flex items-center gap-2">
                     <Search size={20} />
@@ -123,7 +123,7 @@ export default function HelpPage() {
 
               <div className="space-y-4">
                 {faqItems.map((item, index) => (
-                  <Card key={index} className="bg-gray-800 border-gray-700">
+                  <Card key={index} className="bg-[#051419] border-gray-700">
                     <CardHeader>
                       <div className="flex items-center justify-between">
                         <CardTitle className="text-white text-lg">{item.question}</CardTitle>
@@ -143,7 +143,7 @@ export default function HelpPage() {
 
           <TabsContent value="tutorials" className="mt-6">
             <div className="space-y-6">
-              <Card className="bg-gray-800 border-gray-700">
+              <Card className="bg-[#051419] border-gray-700">
                 <CardHeader>
                   <CardTitle className="text-white flex items-center gap-2">
                     <Book size={20} />
@@ -157,7 +157,7 @@ export default function HelpPage() {
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 {tutorials.map((tutorial, index) => (
-                  <Card key={index} className="bg-gray-800 border-gray-700 hover:border-blue-500 transition-colors">
+                  <Card key={index} className="bg-[#051419] border-gray-700 hover:border-blue-500 transition-colors">
                     <CardHeader>
                       <div className="flex items-start justify-between">
                         <div className="flex items-center gap-2">
@@ -195,7 +195,7 @@ export default function HelpPage() {
 
           <TabsContent value="contact" className="mt-6">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <Card className="bg-gray-800 border-gray-700">
+              <Card className="bg-[#051419] border-gray-700">
                 <CardHeader>
                   <CardTitle className="text-white flex items-center gap-2">
                     <Mail size={20} />
@@ -226,7 +226,7 @@ export default function HelpPage() {
                 </CardContent>
               </Card>
 
-              <Card className="bg-gray-800 border-gray-700">
+              <Card className="bg-[#051419] border-gray-700">
                 <CardHeader>
                   <CardTitle className="text-white">Support Channels</CardTitle>
                   <CardDescription className="text-gray-400">
@@ -278,7 +278,7 @@ export default function HelpPage() {
 
           <TabsContent value="community" className="mt-6">
             <div className="space-y-6">
-              <Card className="bg-gray-800 border-gray-700">
+              <Card className="bg-[#051419] border-gray-700">
                 <CardHeader>
                   <CardTitle className="text-white flex items-center gap-2">
                     <Users size={20} />

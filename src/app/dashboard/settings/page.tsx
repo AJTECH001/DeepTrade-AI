@@ -49,7 +49,7 @@ export default function SettingsPage() {
           </TabsList>
 
           <TabsContent value="profile" className="mt-6">
-            <Card className="bg-gray-800 border-gray-700">
+            <Card className="bg-[#051419] border-gray-700">
               <CardHeader>
                 <CardTitle className="text-white flex items-center gap-2">
                   <User size={20} />
@@ -106,7 +106,7 @@ export default function SettingsPage() {
 
           <TabsContent value="security" className="mt-6">
             <div className="space-y-6">
-              <Card className="bg-gray-800 border-gray-700">
+              <Card className="bg-[#051419] border-gray-700">
                 <CardHeader>
                   <CardTitle className="text-white flex items-center gap-2">
                     <Shield size={20} />
@@ -143,7 +143,7 @@ export default function SettingsPage() {
                 </CardContent>
               </Card>
 
-              <Card className="bg-gray-800 border-gray-700">
+              <Card className="bg-[#051419] border-gray-700">
                 <CardHeader>
                   <CardTitle className="text-white">Change Password</CardTitle>
                 </CardHeader>
@@ -181,7 +181,7 @@ export default function SettingsPage() {
           </TabsContent>
 
           <TabsContent value="notifications" className="mt-6">
-            <Card className="bg-gray-800 border-gray-700">
+            <Card className="bg-[#051419] border-gray-700">
               <CardHeader>
                 <CardTitle className="text-white flex items-center gap-2">
                   <Bell size={20} />
@@ -213,7 +213,7 @@ export default function SettingsPage() {
           </TabsContent>
 
           <TabsContent value="trading" className="mt-6">
-            <Card className="bg-gray-800 border-gray-700">
+            <Card className="bg-[#051419] border-gray-700">
               <CardHeader>
                 <CardTitle className="text-white flex items-center gap-2">
                   <Wallet size={20} />
@@ -280,7 +280,7 @@ export default function SettingsPage() {
           </TabsContent>
 
           <TabsContent value="api" className="mt-6">
-            <Card className="bg-gray-800 border-gray-700">
+            <Card className="bg-[#051419] border-gray-700">
               <CardHeader>
                 <CardTitle className="text-white flex items-center gap-2">
                   <Key size={20} />

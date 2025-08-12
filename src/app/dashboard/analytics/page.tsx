@@ -27,12 +27,12 @@ export default function AnalyticsPage() {
               Comprehensive performance analytics and insights for your trading bots.
             </p>
           </div>
-          <div className="flex gap-2">
-            <Button variant="outline" className="border-gray-600 text-gray-300">
+          <div className="flex bg-[#051419] gap-2">
+            <Button variant="outline" className="border-gray-600 bg-[#051419] text-gray-300">
               <Calendar size={16} className="mr-2" />
               Last 30 Days
             </Button>
-            <Button variant="outline" className="border-gray-600 text-gray-300">
+            <Button variant="outline" className="border-gray-600 bg-[#051419] text-gray-300">
               <Download size={16} className="mr-2" />
               Export Report
             </Button>
@@ -41,7 +41,7 @@ export default function AnalyticsPage() {
 
         {/* Key Metrics */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-          <Card className="bg-gray-800 border-gray-700">
+          <Card className="bg-[#051419] border-gray-700">
             <CardContent className="p-4">
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 rounded-full bg-green-500/20 flex items-center justify-center">
@@ -56,7 +56,7 @@ export default function AnalyticsPage() {
             </CardContent>
           </Card>
 
-          <Card className="bg-gray-800 border-gray-700">
+          <Card className="bg-[#051419] border-gray-700">
             <CardContent className="p-4">
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 rounded-full bg-blue-500/20 flex items-center justify-center">
@@ -71,7 +71,7 @@ export default function AnalyticsPage() {
             </CardContent>
           </Card>
 
-          <Card className="bg-gray-800 border-gray-700">
+          <Card className="bg-[#051419] border-gray-700">
             <CardContent className="p-4">
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 rounded-full bg-purple-500/20 flex items-center justify-center">
@@ -86,7 +86,7 @@ export default function AnalyticsPage() {
             </CardContent>
           </Card>
 
-          <Card className="bg-gray-800 border-gray-700">
+          <Card className="bg-[#051419] border-gray-700">
             <CardContent className="p-4">
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 rounded-full bg-orange-500/20 flex items-center justify-center">
@@ -104,23 +104,23 @@ export default function AnalyticsPage() {
 
         <Tabs defaultValue="performance" className="w-full">
           <TabsList className="grid w-full grid-cols-4 bg-gray-700">
-            <TabsTrigger value="performance" className="data-[state=active]:bg-blue-600">
+            <TabsTrigger value="performance" className="data-[state=active]:bg-[#00d2cee6]">
               Performance
             </TabsTrigger>
-            <TabsTrigger value="risk" className="data-[state=active]:bg-blue-600">
+            <TabsTrigger value="risk" className="data-[state=active]:bg-[#00d2cee6]">
               Risk Analysis
             </TabsTrigger>
-            <TabsTrigger value="trades" className="data-[state=active]:bg-blue-600">
+            <TabsTrigger value="trades" className="data-[state=active]:bg-[#00d2cee6]">
               Trade History
             </TabsTrigger>
-            <TabsTrigger value="comparison" className="data-[state=active]:bg-blue-600">
+            <TabsTrigger value="comparison" className="data-[state=active]:bg-[#00d2cee6]">
               Bot Comparison
             </TabsTrigger>
           </TabsList>
 
           <TabsContent value="performance" className="mt-6">
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              <Card className="bg-gray-800 border-gray-700">
+              <Card className="bg-[#051419] border-gray-700">
                 <CardHeader>
                   <CardTitle className="text-white flex items-center gap-2">
                     <BarChart3 size={20} />
@@ -137,7 +137,7 @@ export default function AnalyticsPage() {
                 </CardContent>
               </Card>
 
-              <Card className="bg-gray-800 border-gray-700">
+              <Card className="bg-[#051419] border-gray-700">
                 <CardHeader>
                   <CardTitle className="text-white flex items-center gap-2">
                     <PieChart size={20} />
@@ -158,7 +158,7 @@ export default function AnalyticsPage() {
 
           <TabsContent value="risk" className="mt-6">
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              <Card className="bg-gray-800 border-gray-700">
+              <Card className="bg-[#051419] border-gray-700">
                 <CardHeader>
                   <CardTitle className="text-white">Risk Metrics</CardTitle>
                   <CardDescription className="text-gray-400">
@@ -189,7 +189,7 @@ export default function AnalyticsPage() {
                 </CardContent>
               </Card>
 
-              <Card className="bg-gray-800 border-gray-700">
+              <Card className="bg-[#051419] border-gray-700">
                 <CardHeader>
                   <CardTitle className="text-white">Risk Distribution</CardTitle>
                   <CardDescription className="text-gray-400">
@@ -206,7 +206,7 @@ export default function AnalyticsPage() {
           </TabsContent>
 
           <TabsContent value="trades" className="mt-6">
-            <Card className="bg-gray-800 border-gray-700">
+            <Card className="bg-[#051419] border-gray-700">
               <CardHeader>
                 <CardTitle className="text-white">Recent Trades</CardTitle>
                 <CardDescription className="text-gray-400">
@@ -244,7 +244,7 @@ export default function AnalyticsPage() {
           </TabsContent>
 
           <TabsContent value="comparison" className="mt-6">
-            <Card className="bg-gray-800 border-gray-700">
+            <Card className="bg-[#051419] border-gray-700">
               <CardHeader>
                 <CardTitle className="text-white">Bot Performance Comparison</CardTitle>
                 <CardDescription className="text-gray-400">

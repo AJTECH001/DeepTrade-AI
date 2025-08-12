@@ -13,7 +13,7 @@ interface StatCardProps {
 
 function StatCard({ title, value, change, changeType, icon }: StatCardProps) {
   return (
-    <Card className="bg-gray-700/50 border-gray-600 hover:border-blue-500 transition-all duration-200 transform hover:scale-[1.02] p-4">
+    <Card className="bg-gray-700/50 border-gray-600 hover:border-[#00d2cee6] transition-all duration-200 transform hover:scale-[1.02] p-4">
       <div className="flex items-start justify-between">
         <div>
           <p className="text-gray-400 text-sm">{title}</p>

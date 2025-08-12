@@ -9,7 +9,7 @@ export function DashboardHeader() {
   const { connected } = useWallet();
 
   return (
-    <header className="h-16 bg-gray-800 border-b border-gray-700 px-6 flex items-center justify-between">
+    <header className="h-16 bg-[#051419] border-b border-gray-700 px-6 flex items-center justify-between">
       {/* Logo and Title */}
       <div className="flex-shrink-0">
         <span className="text-[#00d2cee6] text-2xl font-bold">DeepTrade AI</span>

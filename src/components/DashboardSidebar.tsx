@@ -108,7 +108,7 @@ export function DashboardSidebar({ onClose }: DashboardSidebarProps) {
           variant="ghost"
           className={`
             w-full justify-start ${paddingLeft} pr-4 py-3 h-auto text-left
-            ${item.active ? 'bg-blue-600 text-white' : 'text-gray-300 hover:text-white hover:bg-gray-700'}
+            ${item.active ? 'bg-[#00d2cee6] text-white' : 'text-gray-300 hover:text-white hover:bg-gray-700'}
             ${level > 0 ? 'text-sm' : ''}
           `}
           onClick={() => {
@@ -125,7 +125,7 @@ export function DashboardSidebar({ onClose }: DashboardSidebarProps) {
               {item.icon}
               <span>{item.label}</span>
               {item.badge && (
-                <span className="ml-auto bg-blue-600 text-white text-xs px-2 py-1 rounded-full">
+                <span className="ml-auto bg-[#00d2cee6] text-white text-xs px-2 py-1 rounded-full">
                   {item.badge}
                 </span>
               )}
@@ -149,7 +149,7 @@ export function DashboardSidebar({ onClose }: DashboardSidebarProps) {
 
   if (!connected) {
     return (
-      <div className="w-64 h-full bg-gray-800 border-r border-gray-700 flex items-center justify-center">
+      <div className="w-64 h-full bg-[#051419] border-r border-gray-700 flex items-center justify-center">
         <div className="text-center text-gray-400 p-6">
           <Bot size={48} className="mx-auto mb-4 opacity-50" />
           <p className="text-sm">Connect wallet to access dashboard</p>
@@ -159,7 +159,7 @@ export function DashboardSidebar({ onClose }: DashboardSidebarProps) {
   }
 
   return (
-    <div className="w-64 h-full bg-gray-800 border-r border-gray-700 flex flex-col">
+    <div className="w-64 h-full bg-[#051419] border-r border-gray-700 flex flex-col">
       {/* Mobile close button */}
       <div className="lg:hidden flex justify-end p-4">
         <Button variant="ghost" size="icon" onClick={onClose} className="text-gray-400 hover:text-white">
@@ -184,7 +184,7 @@ export function DashboardSidebar({ onClose }: DashboardSidebarProps) {
       {/* User Info */}
       <div className="border-t border-gray-700 p-4">
         <div className="flex items-center gap-3">
-          <div className="w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center">
+          <div className="w-8 h-8 bg-[#00d2cee6] rounded-full flex items-center justify-center">
             <span className="text-white text-sm font-medium">U</span>
           </div>
           <div className="flex-1 min-w-0">

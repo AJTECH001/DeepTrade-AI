@@ -20,7 +20,7 @@ export default function DashboardPage() {
   const dashboardContent = connected ? (
     <div className="space-y-6">
       {/* Welcome Section */}
-      <div className="bg-gray-800 rounded-xl border border-gray-700 p-6">
+      <div className="bg-[#051419] rounded-xl border border-gray-700 p-6">
         <div className="flex flex-col md:flex-row items-center justify-between gap-4 mb-6">
           <div>
             <h2 className="text-2xl font-bold mb-1 text-white">Trading Dashboard</h2>
@@ -29,11 +29,11 @@ export default function DashboardPage() {
             </p>
           </div>
           <div className="flex items-center gap-2">
-            <Button variant="outline" size="sm" className="border-gray-600 text-gray-300 hover:bg-gray-700">
+            <Button variant="outline" size="sm" className="border-gray-600 bg-[#051419] text-gray-300 hover:bg-gray-700">
               <Calendar size={16} className="mr-2" />
               Last 24h
             </Button>
-            <Button className="bg-blue-600 hover:bg-blue-500">
+            <Button className="bg-[#00d2cee6] hover:bg-[#00d2cee6]   ">
               <Plus size={16} className="mr-2" />
               New Bot
             </Button>
@@ -46,18 +46,18 @@ export default function DashboardPage() {
         </div>
 
         {/* Performance Chart */}
-        <div className="bg-gray-700/30 rounded-lg p-4 border border-gray-700 h-[300px]">
+        <div className="bg-[#051419] rounded-lg p-4 border border-gray-700 h-[300px]">
           <div className="flex items-center justify-between mb-4">
             <h3 className="font-medium text-white">Portfolio Performance</h3>
             <div className="flex items-center gap-2">
-              <Button variant="outline" size="sm" className="border-gray-600 text-gray-300">1D</Button>
-              <Button size="sm" className="bg-blue-600">1W</Button>
-              <Button variant="outline" size="sm" className="border-gray-600 text-gray-300">1M</Button>
-              <Button variant="outline" size="sm" className="border-gray-600 text-gray-300">1Y</Button>
+              <Button variant="outline" size="sm" className="border-gray-600 bg-[#051419] text-gray-300">1D</Button>
+              <Button size="sm" className="bg-[#00d2cee6]">1W</Button>
+              <Button variant="outline" size="sm" className="border-gray-600 bg-[#051419] text-gray-300">1M</Button>
+              <Button variant="outline" size="sm" className="border-gray-600 bg-[#051419] text-gray-300">1Y</Button>
             </div>
           </div>
           <div className="w-full h-[240px] relative">
-            <div className="absolute bottom-0 left-0 w-full h-[220px] bg-gradient-to-t from-blue-500/10 to-transparent"></div>
+            <div className="absolute bottom-0 left-0  h-[220px] bg-gradient-to-t from-blue-500/10 "></div>
             <div className="flex items-center justify-center h-full text-gray-400">
               Chart visualization coming soon...
             </div>
@@ -67,10 +67,10 @@ export default function DashboardPage() {
 
       {/* Top Performing Bots and Recent Trades */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <div className="bg-gray-800 rounded-xl border border-gray-700 p-6">
+        <div className="bg-[#051419] rounded-xl border border-gray-700 p-6">
           <div className="flex items-center justify-between mb-4">
             <h3 className="text-lg font-bold text-white">Top Performing Bots</h3>
-            <Button variant="ghost" size="sm" className="text-blue-500 hover:text-blue-400">
+            <Button variant="ghost" size="sm" className="text-[#00d2cee6] hover:text-[#00d2cee6]">
               View All
             </Button>
           </div>
@@ -81,7 +81,7 @@ export default function DashboardPage() {
               { name: "ETH RSI Strategy", pair: "ETH/USDT", timeframe: "1h", profit: "+8.7%", progress: 64, color: "blue" },
               { name: "Altcoin Swing", pair: "SOL/USDT", timeframe: "12h", profit: "+5.2%", progress: 52, color: "purple" }
             ].map((bot, index) => (
-              <div key={index} className="bg-gray-700/30 rounded-lg p-3 border border-gray-700 hover:border-blue-500 transition-all duration-200 transform hover:scale-[1.02]">
+              <div key={index} className="bg-gray-700/30 rounded-lg p-3 border border-gray-700 hover:border-[#00d2cee6] transition-all duration-200 transform hover:scale-[1.02]">
                 <div className="flex items-center justify-between mb-2">
                   <div className="flex items-center gap-3">
                     <div className={`w-8 h-8 rounded-full bg-${bot.color}-500/20 flex items-center justify-center`}>
@@ -105,10 +105,10 @@ export default function DashboardPage() {
           </div>
         </div>
 
-        <div className="bg-gray-800 rounded-xl border border-gray-700 p-6">
+        <div className="bg-[#051419] rounded-xl border border-gray-700 p-6">
           <div className="flex items-center justify-between mb-4">
             <h3 className="text-lg font-bold text-white">Recent Trades</h3>
-            <Button variant="ghost" size="sm" className="text-blue-500 hover:text-blue-400">
+            <Button variant="ghost" size="sm" className="text-[#00d2cee6] hover:text-[#00d2cee6]">
               View All
             </Button>
           </div>
@@ -119,7 +119,7 @@ export default function DashboardPage() {
               { pair: "ETH/USDT", type: "SELL", price: "$1,865.20", profit: "-$42.30 (2.2%)", time: "2023-08-12 13:18:22", positive: false },
               { pair: "SOL/USDT", type: "BUY", price: "$24.35", profit: "+$1.25 (5.4%)", time: "2023-08-12 11:05:16", positive: true }
             ].map((trade, index) => (
-              <div key={index} className="bg-gray-700/30 rounded-lg p-3 border border-gray-700 hover:border-blue-500 transition-all duration-200">
+              <div key={index} className="bg-gray-700/30 rounded-lg p-3 border border-gray-700 hover:border-[#00d2cee6] transition-all duration-200">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-3">
                     <div className={`w-8 h-8 rounded-full ${trade.positive ? 'bg-green-500/20' : 'bg-red-500/20'} flex items-center justify-center`}>
@@ -151,14 +151,14 @@ export default function DashboardPage() {
       </div>
 
       {/* Main Tabs */}
-      <div className="bg-gray-800 rounded-xl border border-gray-700 p-6">
+      <div className="bg-[#051419] rounded-xl border border-gray-700 p-6">
         <Tabs defaultValue="create" className="w-full">
           <TabsList className="grid w-full grid-cols-5 bg-gray-700">
-            <TabsTrigger value="create" className="data-[state=active]:bg-blue-600">Create Bot</TabsTrigger>
-            <TabsTrigger value="my-bots" className="data-[state=active]:bg-blue-600">My Bots</TabsTrigger>
-            <TabsTrigger value="leaderboard" className="data-[state=active]:bg-blue-600">Leaderboard</TabsTrigger>
-            <TabsTrigger value="trading" className="data-[state=active]:bg-blue-600">Trading</TabsTrigger>
-            <TabsTrigger value="cross-chain" className="data-[state=active]:bg-blue-600">Cross-Chain</TabsTrigger>
+            <TabsTrigger value="create" className="data-[state=active]:bg-[#00d2cee6]">Create Bot</TabsTrigger>
+            <TabsTrigger value="my-bots" className="data-[state=active]:bg-[#00d2cee6]">My Bots</TabsTrigger>
+            <TabsTrigger value="leaderboard" className="data-[state=active]:bg-[#00d2cee6]">Leaderboard</TabsTrigger>
+            <TabsTrigger value="trading" className="data-[state=active]:bg-[#00d2cee6]">Trading</TabsTrigger>
+            <TabsTrigger value="cross-chain" className="data-[state=active]:bg-[#00d2cee6]">Cross-Chain</TabsTrigger>
           </TabsList>
 
           <TabsContent value="create" className="space-y-6 mt-6">
@@ -185,7 +185,7 @@ export default function DashboardPage() {
     </div>
   ) : (
     <div className="flex items-center justify-center min-h-[60vh]">
-      <Card className="w-full max-w-md bg-gray-800 border-gray-700">
+      <Card className="w-full max-w-md bg-[#051419] border-gray-700">
         <CardHeader>
           <CardTitle className="text-white">Welcome to DeepTrade AI</CardTitle>
           <CardDescription className="text-gray-400">

@@ -68,7 +68,7 @@ export default function ArbitragePage() {
 
         {/* Stats Overview */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-          <Card className="bg-gray-800 border-gray-700">
+          <Card className="bg-[#051419] border-gray-700">
             <CardContent className="p-4">
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 rounded-full bg-green-500/20 flex items-center justify-center">
@@ -82,7 +82,7 @@ export default function ArbitragePage() {
             </CardContent>
           </Card>
 
-          <Card className="bg-gray-800 border-gray-700">
+          <Card className="bg-[#051419] border-gray-700">
             <CardContent className="p-4">
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 rounded-full bg-blue-500/20 flex items-center justify-center">
@@ -96,7 +96,7 @@ export default function ArbitragePage() {
             </CardContent>
           </Card>
 
-          <Card className="bg-gray-800 border-gray-700">
+          <Card className="bg-[#051419] border-gray-700">
             <CardContent className="p-4">
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 rounded-full bg-purple-500/20 flex items-center justify-center">
@@ -110,7 +110,7 @@ export default function ArbitragePage() {
             </CardContent>
           </Card>
 
-          <Card className="bg-gray-800 border-gray-700">
+          <Card className="bg-[#051419] border-gray-700">
             <CardContent className="p-4">
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 rounded-full bg-orange-500/20 flex items-center justify-center">
@@ -126,7 +126,7 @@ export default function ArbitragePage() {
         </div>
 
         {/* Arbitrage Opportunities */}
-        <Card className="bg-gray-800 border-gray-700">
+        <Card className="bg-[#051419] border-gray-700">
           <CardHeader>
             <CardTitle className="text-white">Live Arbitrage Opportunities</CardTitle>
             <CardDescription className="text-gray-400">
