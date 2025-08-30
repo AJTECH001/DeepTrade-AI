@@ -1,69 +1,18 @@
 "use client";
 import { useWallet } from "@aptos-labs/wallet-adapter-react";
-import { useQuery } from "@tanstack/react-query";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-
-interface BotPerformance {
-  botId: number;
-  name: string;
-  balance: number;
-  performance: number;
-  totalTrades: number;
-  active: boolean;
-  createdAt: number;
-  winRate: number;
-  profitLoss: number;
-  balanceUSD: number;
-  lastTradeAt: number | null;
-}
-
-async function fetchUserBots(_userAddress: string): Promise<BotPerformance[]> {
-  // For demo purposes, we'll return mock data
-  // In a real implementation, you would fetch from the API
-  return [
-    {
-      botId: 1,
-      name: "CryptoWizard",
-      balance: 1000000,
-      performance: 187000,
-      totalTrades: 45,
-      active: true,
-      createdAt: Date.now() / 1000 - 86400,
-      winRate: 78,
-      profitLoss: 0.187,
-      balanceUSD: 1.187,
-      lastTradeAt: Date.now() / 1000 - 3600
-    },
-    {
-      botId: 2,
-      name: "MoonShot",
-      balance: 800000,
-      performance: 142000,
-      totalTrades: 32,
-      active: true,
-      createdAt: Date.now() / 1000 - 172800,
-      winRate: 72,
-      profitLoss: 0.142,
-      balanceUSD: 0.942,
-      lastTradeAt: Date.now() / 1000 - 7200
-    }
-  ];
-}
+import { useUserBot } from "@/hooks/useContract";
+import { BotPerformanceCard } from "@/components/ui/BotPerformanceCard";
+import { LoadingSkeleton } from "@/components/ui/LoadingSkeleton";
 
 export function UserBots() {
   const { account } = useWallet();
+  const userAddress = account?.address?.toString();
 
-  // Convert AccountAddress to string
-  const userAddress = account?.address?.toString() || "";
-
-  const { data: userBots, isLoading, error } = useQuery({
-    queryKey: ["userBots", userAddress],
-    queryFn: () => fetchUserBots(userAddress),
-    enabled: !!userAddress,
-    refetchInterval: 30000, // Refetch every 30 seconds
-  });
+  console.log("UserBots component - userAddress:", userAddress);
+  const { data: userBot, isLoading, error, refetch } = useUserBot(userAddress);
+  console.log("UserBots component - userBot:", userBot, "isLoading:", isLoading, "error:", error);
 
   if (!account?.address) {
     return (
@@ -86,17 +35,16 @@ export function UserBots() {
           <CardDescription>Loading your bots...</CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="animate-pulse space-y-4">
-            {[1, 2].map((i) => (
-              <div key={i} className="h-24 bg-muted rounded-lg"></div>
-            ))}
-          </div>
+          <LoadingSkeleton count={1} height={200} />
         </CardContent>
       </Card>
     );
   }
 
   if (error) {
+    const errorMessage = error instanceof Error ? error.message : "Failed to load trading bots";
+    const isContractError = errorMessage.includes("Contract not deployed") || errorMessage.includes("Module not found");
+    
     return (
       <Card>
         <CardHeader>
@@ -104,13 +52,26 @@ export function UserBots() {
           <CardDescription>Error loading your bots.</CardDescription>
         </CardHeader>
         <CardContent>
-          <p className="text-destructive">Failed to load trading bots. Please try again.</p>
+          <div className="space-y-2">
+            <p className="text-destructive">{errorMessage}</p>
+            {isContractError ? (
+              <div className="p-3 border rounded-lg bg-yellow-50 border-yellow-200">
+                <p className="text-sm text-yellow-700">
+                  Please deploy the trading bot contract first and update the MODULE_ADDRESS.
+                </p>
+              </div>
+            ) : (
+              <Button onClick={() => refetch()} variant="outline">
+                Retry
+              </Button>
+            )}
+          </div>
         </CardContent>
       </Card>
     );
   }
 
-  if (!userBots || userBots.length === 0) {
+  if (!userBot) {
     return (
       <Card>
         <CardHeader>
@@ -118,9 +79,31 @@ export function UserBots() {
           <CardDescription>You haven't created any trading bots yet.</CardDescription>
         </CardHeader>
         <CardContent>
-          <p className="text-muted-foreground">
-            Create your first trading bot to get started with automated trading.
-          </p>
+          <div className="space-y-3">
+            <p className="text-muted-foreground">
+              Create your first trading bot to get started with automated trading.
+            </p>
+            
+            {/* Debug info */}
+            <div className="p-3 border rounded-lg bg-gray-50 border-gray-200">
+              <p className="text-xs text-gray-600 mb-2">Debug Info:</p>
+              <p className="text-xs text-gray-500">User Address: {userAddress}</p>
+              <p className="text-xs text-gray-500">Loading: {isLoading ? 'Yes' : 'No'}</p>
+              <p className="text-xs text-gray-500">Error: {error ? 'Yes' : 'No'}</p>
+              <p className="text-xs text-gray-500">Bot Data: {userBot ? 'Found' : 'None'}</p>
+              <Button 
+                onClick={() => {
+                  console.log("Manual refetch triggered");
+                  refetch();
+                }} 
+                variant="outline" 
+                size="sm"
+                className="mt-2"
+              >
+                Refresh Bot Data
+              </Button>
+            </div>
+          </div>
         </CardContent>
       </Card>
     );
@@ -131,57 +114,21 @@ export function UserBots() {
       <CardHeader>
         <CardTitle>My Trading Bots</CardTitle>
         <CardDescription>
-          Manage your AI-powered trading bots and monitor their performance.
+          Manage your AI-powered trading bot and monitor its performance.
         </CardDescription>
       </CardHeader>
       <CardContent>
-        <div className="space-y-4">
-          {userBots.map((bot) => (
-            <div
-              key={bot.botId}
-              className="flex items-center justify-between p-4 border rounded-lg hover:bg-muted/50 transition-colors"
-            >
-              <div className="flex-1">
-                <div className="flex items-center gap-2 mb-2">
-                  <h3 className="font-semibold">{bot.name}</h3>
-                  <Badge variant={bot.active ? "default" : "secondary"}>
-                    {bot.active ? "Active" : "Inactive"}
-                  </Badge>
-                </div>
-                
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
-                  <div>
-                    <p className="text-muted-foreground">Balance</p>
-                    <p className="font-medium">${bot.balanceUSD.toFixed(3)}</p>
-                  </div>
-                  <div>
-                    <p className="text-muted-foreground">P&L</p>
-                    <p className={`font-medium ${bot.profitLoss >= 0 ? 'text-green-600' : 'text-red-600'}`}>
-                      {bot.profitLoss >= 0 ? '+' : ''}{bot.profitLoss.toFixed(3)} USDC
-                    </p>
-                  </div>
-                  <div>
-                    <p className="text-muted-foreground">Trades</p>
-                    <p className="font-medium">{bot.totalTrades}</p>
-                  </div>
-                  <div>
-                    <p className="text-muted-foreground">Win Rate</p>
-                    <p className="font-medium">{bot.winRate}%</p>
-                  </div>
-                </div>
-              </div>
-
-              <div className="flex flex-col gap-2 ml-4">
-                <Button size="sm" variant="outline">
-                  View Details
-                </Button>
-                <Button size="sm" variant="outline">
-                  {bot.active ? "Pause" : "Resume"}
-                </Button>
-              </div>
-            </div>
-          ))}
-        </div>
+        <BotPerformanceCard 
+          bot={userBot}
+          onViewDetails={(botId) => {
+            console.log('View details for bot:', botId);
+            // TODO: Implement bot details modal
+          }}
+          onToggleStatus={(botId, currentStatus) => {
+            console.log('Toggle status for bot:', botId, currentStatus);
+            // TODO: Implement bot status toggle
+          }}
+        />
       </CardContent>
     </Card>
   );

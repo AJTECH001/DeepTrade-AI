@@ -1,38 +1,27 @@
 "use client";
-import { useQuery } from "@tanstack/react-query";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { useLeaderboard } from "@/hooks/useContract";
+import { LoadingSkeleton } from "@/components/ui/LoadingSkeleton";
 import { formatAddress } from "@/utils/helpers";
-
-interface LeaderboardEntry {
-  rank: number;
-  botId: number;
-  name: string;
-  owner: string;
-  performance: number;
-  totalTrades: number;
-  winRate: number;
-  profitLoss: number;
-  lastUpdated: string;
-}
-
-async function fetchLeaderboard(): Promise<LeaderboardEntry[]> {
-  const response = await fetch('/api/bots/leaderboard');
-  const result = await response.json();
-  
-  if (result.success) {
-    return result.leaderboard;
-  } else {
-    throw new Error(result.error || 'Failed to fetch leaderboard');
-  }
-}
+import { formatPerformance } from "@/utils/formatters";
 
 export function Leaderboard() {
-  const { data: leaderboard, isLoading, error } = useQuery({
-    queryKey: ["leaderboard"],
-    queryFn: fetchLeaderboard,
-    refetchInterval: 30000, // Refetch every 30 seconds
-  });
+  const { data: leaderboard, isLoading, error, refetch } = useLeaderboard();
+
+  const getRankColor = (rank: number) => {
+    switch (rank) {
+      case 1:
+        return "bg-yellow-500 text-black";
+      case 2:
+        return "bg-neutral-400 text-black";
+      case 3:
+        return "bg-amber-700 text-white";
+      default:
+        return "bg-neutral-700 text-white";
+    }
+  };
 
   if (isLoading) {
     return (
@@ -42,17 +31,16 @@ export function Leaderboard() {
           <CardDescription>Loading top performers...</CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="animate-pulse space-y-4">
-            {[1, 2, 3, 4, 5].map((i) => (
-              <div key={i} className="h-16 bg-muted rounded-lg"></div>
-            ))}
-          </div>
+          <LoadingSkeleton count={5} height={60} />
         </CardContent>
       </Card>
     );
   }
 
   if (error) {
+    const errorMessage = error instanceof Error ? error.message : "Failed to load leaderboard";
+    const isContractError = errorMessage.includes("Contract not deployed") || errorMessage.includes("Module not found");
+    
     return (
       <Card>
         <CardHeader>
@@ -60,7 +48,20 @@ export function Leaderboard() {
           <CardDescription>Error loading leaderboard.</CardDescription>
         </CardHeader>
         <CardContent>
-          <p className="text-destructive">Failed to load leaderboard. Please try again.</p>
+          <div className="space-y-2">
+            <p className="text-destructive">{errorMessage}</p>
+            {isContractError ? (
+              <div className="p-3 border rounded-lg bg-yellow-50 border-yellow-200">
+                <p className="text-sm text-yellow-700">
+                  Please deploy the trading bot contract first and update the MODULE_ADDRESS.
+                </p>
+              </div>
+            ) : (
+              <Button onClick={() => refetch()} variant="outline">
+                Retry
+              </Button>
+            )}
+          </div>
         </CardContent>
       </Card>
     );
@@ -82,19 +83,6 @@ export function Leaderboard() {
     );
   }
 
-  const getRankColor = (rank: number) => {
-    switch (rank) {
-      case 1:
-        return "bg-yellow-500 text-black";
-      case 2:
-        return "bg-neutral-400 text-black";
-      case 3:
-        return "bg-amber-700 text-white";
-      default:
-        return "bg-neutral-700 text-white";
-    }
-  };
-
   return (
     <Card>
       <CardHeader>
@@ -105,44 +93,46 @@ export function Leaderboard() {
       </CardHeader>
       <CardContent>
         <div className="space-y-3">
-          {leaderboard.map((entry) => (
-            <div
-              key={entry.botId}
-              className="flex items-center justify-between p-4 border rounded-lg hover:bg-muted/50 transition-colors"
-            >
-              <div className="flex items-center gap-4">
-                <div className={`h-8 w-8 rounded-full flex items-center justify-center font-bold ${getRankColor(entry.rank)}`}>
-                  {entry.rank}
+          {leaderboard.map((entry, index) => {
+            const rank = index + 1;
+            const performanceUSD = parseFloat(formatPerformance(entry.net_performance));
+            
+            return (
+              <div
+                key={entry.bot_id}
+                className="flex items-center justify-between p-4 border rounded-lg hover:bg-muted/50 transition-colors"
+              >
+                <div className="flex items-center gap-4">
+                  <div className={`h-8 w-8 rounded-full flex items-center justify-center font-bold ${getRankColor(rank)}`}>
+                    {rank}
+                  </div>
+                  
+                  <div className="flex-1">
+                    <div className="flex items-center gap-2 mb-1">
+                      <h3 className="font-semibold">{entry.name}</h3>
+                      <Badge variant="outline" className="text-xs">
+                        {entry.total_trades} trades
+                      </Badge>
+                    </div>
+                    <p className="text-sm text-muted-foreground">
+                      by {formatAddress(entry.owner)}
+                    </p>
+                  </div>
                 </div>
-                
-                <div className="flex-1">
-                  <div className="flex items-center gap-2 mb-1">
-                    <h3 className="font-semibold">{entry.name}</h3>
+
+                <div className="text-right">
+                  <div className="flex items-center gap-2">
+                    <span className={`font-semibold ${performanceUSD >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                      {performanceUSD >= 0 ? '+' : ''}{performanceUSD.toFixed(3)} USDC
+                    </span>
                     <Badge variant="outline" className="text-xs">
-                      {entry.totalTrades} trades
+                      {entry.win_rate}% win rate
                     </Badge>
                   </div>
-                  <p className="text-sm text-muted-foreground">
-                    by {formatAddress(entry.owner)}
-                  </p>
                 </div>
               </div>
-
-              <div className="text-right">
-                <div className="flex items-center gap-2">
-                  <span className={`font-semibold ${entry.profitLoss >= 0 ? 'text-green-600' : 'text-red-600'}`}>
-                    {entry.profitLoss >= 0 ? '+' : ''}{entry.profitLoss.toFixed(3)} USDC
-                  </span>
-                  <Badge variant="outline" className="text-xs">
-                    {entry.winRate}% win rate
-                  </Badge>
-                </div>
-                <p className="text-xs text-muted-foreground">
-                  Updated {new Date(entry.lastUpdated).toLocaleTimeString()}
-                </p>
-              </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
       </CardContent>
     </Card>

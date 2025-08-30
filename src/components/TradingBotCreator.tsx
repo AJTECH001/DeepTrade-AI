@@ -2,114 +2,244 @@
 
 import { useState } from "react";
 import { useWallet } from "@aptos-labs/wallet-adapter-react";
-import { useToast } from "@/components/ui/use-toast";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { useCreateBot, useHasBot } from "@/hooks/useContract";
+import { CreateBotParams } from "@/types/contract";
+import { MODULE_ADDRESS } from "@/constants";
 
 export function TradingBotCreator() {
   const { account } = useWallet();
-  const { toast } = useToast();
   const [botName, setBotName] = useState("");
   const [strategy, setStrategy] = useState("");
-  const [initialBalance, setInitialBalance] = useState(1000);
-  const [isCreating, setIsCreating] = useState(false);
+  const [initialBalance, setInitialBalance] = useState(1000000); // 1 USDC in micro units
+  const [maxPositionSize, setMaxPositionSize] = useState(200000); // 0.2 USDC
+  const [stopLossPercent, setStopLossPercent] = useState(10);
+  const [maxTradesPerDay, setMaxTradesPerDay] = useState(20);
+  const [maxDailyLoss, setMaxDailyLoss] = useState(100000); // 0.1 USDC
+
+  const createBotMutation = useCreateBot();
+  const { data: hasExistingBot } = useHasBot(account?.address?.toString());
+
+  const isFormValid = botName.trim() && strategy.trim() && initialBalance >= 1000000;
 
   const handleCreateBot = async () => {
     if (!account?.address) {
-      toast({
-        title: "Wallet not connected",
-        description: "Please connect your wallet to create a trading bot.",
-        variant: "destructive",
-      });
+      console.log("No account address available");
+      return;
+    }
+    if (!isFormValid) {
+      console.log("Form is not valid");
       return;
     }
 
-    if (!botName.trim() || !strategy.trim()) {
-      toast({
-        title: "Missing information",
-        description: "Please provide both bot name and strategy.",
-        variant: "destructive",
-      });
-      return;
-    }
+    const params: CreateBotParams = {
+      name: botName.trim(),
+      strategy: strategy.trim(),
+      initial_balance: initialBalance,
+      max_position_size: maxPositionSize,
+      stop_loss_percent: stopLossPercent,
+      max_trades_per_day: maxTradesPerDay,
+      max_daily_loss: maxDailyLoss,
+    };
 
-    setIsCreating(true);
+    console.log("Submitting bot creation with params:", params);
+    console.log("Mutation state before call:", {
+      isPending: createBotMutation.isPending,
+      isError: createBotMutation.isError,
+      isSuccess: createBotMutation.isSuccess
+    });
+
     try {
-      // Simulate bot creation
-      await new Promise(resolve => setTimeout(resolve, 2000));
+      const result = await createBotMutation.mutateAsync(params);
+      console.log("Mutation completed with result:", result);
       
-      toast({
-        title: "Bot created successfully",
-        description: `${botName} has been created and is ready to trade.`,
-      });
-
-      // Reset form
+      // Reset form on success
+      console.log("Resetting form...");
       setBotName("");
       setStrategy("");
-      setInitialBalance(1000);
+      setInitialBalance(1000000);
+      setMaxPositionSize(200000);
+      setStopLossPercent(10);
+      setMaxTradesPerDay(20);
+      setMaxDailyLoss(100000);
     } catch (error) {
-      toast({
-        title: "Failed to create bot",
-        description: error instanceof Error ? error.message : "An error occurred",
-        variant: "destructive",
-      });
-    } finally {
-      setIsCreating(false);
+      console.error("Bot creation failed in component:", error);
+      // Error is handled by the mutation hook
     }
   };
+
+  if (!account?.address) {
+    return (
+      <Card>
+        <CardHeader>
+          <CardTitle>Create Trading Bot</CardTitle>
+          <CardDescription>
+            Connect your wallet to create a trading bot.
+          </CardDescription>
+        </CardHeader>
+      </Card>
+    );
+  }
+
+  // Show contract deployment message if not configured
+  if (!MODULE_ADDRESS || MODULE_ADDRESS === "0xYOUR_DEPLOYED_CONTRACT_ADDRESS_HERE") {
+    return (
+      <Card>
+        <CardHeader>
+          <CardTitle>Create Trading Bot</CardTitle>
+          <CardDescription>
+            Contract not deployed yet.
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="p-4 border rounded-lg bg-yellow-50 border-yellow-200">
+            <h4 className="font-semibold text-yellow-800 mb-2">Contract Deployment Required</h4>
+            <p className="text-sm text-yellow-700 mb-3">
+              The trading bot contract needs to be deployed to Aptos testnet first.
+            </p>
+            <div className="text-xs text-yellow-600 space-y-1">
+              <p>1. Deploy using: <code className="bg-yellow-100 px-1 rounded">aptos move publish --named-addresses trading_bot_addr=default</code></p>
+              <p>2. Copy the deployed contract address</p>
+              <p>3. Update MODULE_ADDRESS in constants.ts or set NEXT_PUBLIC_MODULE_ADDRESS environment variable</p>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  if (hasExistingBot) {
+    return (
+      <Card>
+        <CardHeader>
+          <CardTitle>Create Trading Bot</CardTitle>
+          <CardDescription>
+            You already have a trading bot. Each user can only create one bot at a time.
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="p-4 border rounded-lg bg-blue-50 border-blue-200">
+            <h4 className="font-semibold text-blue-800 mb-2">💡 Bot Limit Reached</h4>
+            <p className="text-sm text-blue-700 mb-3">
+              The current contract allows only one bot per user. Your existing bot is already active.
+            </p>
+            <p className="text-xs text-blue-600">
+              Check the "My Trading Bots" section to view and manage your existing bot.
+            </p>
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
 
   return (
     <Card>
       <CardHeader>
         <CardTitle>Create Trading Bot</CardTitle>
         <CardDescription>
-          Create an AI-powered trading bot using natural language strategy descriptions.
+          Create an AI-powered trading bot with custom risk management settings.
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
+        {/* Bot Name */}
         <div>
           <Label htmlFor="bot-name">Bot Name</Label>
           <Input
             id="bot-name"
             value={botName}
             onChange={(e) => setBotName(e.target.value)}
-            placeholder="Enter a name for your bot"
+            placeholder="e.g., Momentum Trader, RSI Scalper, DCA Bot"
+            required
           />
         </div>
 
+        {/* Strategy */}
         <div>
           <Label htmlFor="strategy">Trading Strategy</Label>
           <textarea
             id="strategy"
             value={strategy}
             onChange={(e) => setStrategy(e.target.value)}
-            className="w-full p-2 border rounded-md min-h-[120px]"
-            placeholder="Describe your trading strategy in natural language. For example: 'Buy when RSI is below 30 and sell when RSI is above 70. Use 5% stop loss and 10% take profit.'"
+            className="w-full p-2 border rounded-md min-h-[120px] bg-background text-foreground"
+            placeholder="Example: Buy when RSI is below 30 and price is above 20-day moving average. Sell when RSI is above 70 or price drops 5% from entry. Use 2% position size per trade with maximum 3 positions at once."
+            required
           />
+          <p className="text-xs text-muted-foreground mt-1">
+            💡 Try: "Buy APT when it drops 5% in 1 hour, sell when it gains 3% or after 24 hours"
+          </p>
         </div>
 
+        {/* Initial Balance */}
         <div>
           <Label htmlFor="initial-balance">Initial Balance (USDC)</Label>
           <Input
             id="initial-balance"
             type="number"
-            value={initialBalance}
-            onChange={(e) => setInitialBalance(parseFloat(e.target.value) || 0)}
+            value={initialBalance / 1000000}
+            onChange={(e) => setInitialBalance(parseFloat(e.target.value) * 1000000 || 1000000)}
             min="1"
-            step="1"
+            step="0.1"
+            required
           />
         </div>
 
-        <Button 
-          onClick={handleCreateBot} 
-          disabled={isCreating || !account?.address}
-          className="w-full bg-[#051419]"
+        {/* Risk Management Settings */}
+        <div className="space-y-4">
+          <h3 className="text-lg font-semibold">Risk Management</h3>
+          
+          <div>
+            <Label>Max Position Size: ${(maxPositionSize / 1000000).toFixed(2)} USDC</Label>
+            <input
+              type="range"
+              min={50000}
+              max={500000}
+              step={10000}
+              value={maxPositionSize}
+              onChange={(e) => setMaxPositionSize(parseInt(e.target.value))}
+              className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer"
+            />
+          </div>
+
+          <div>
+            <Label>Stop Loss: {stopLossPercent}%</Label>
+            <input
+              type="range"
+              min={1}
+              max={50}
+              step={1}
+              value={stopLossPercent}
+              onChange={(e) => setStopLossPercent(parseInt(e.target.value))}
+              className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer"
+            />
+          </div>
+
+          <div>
+            <Label>Max Trades Per Day: {maxTradesPerDay}</Label>
+            <input
+              type="range"
+              min={1}
+              max={50}
+              step={1}
+              value={maxTradesPerDay}
+              onChange={(e) => setMaxTradesPerDay(parseInt(e.target.value))}
+              className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer"
+            />
+          </div>
+        </div>
+
+        {/* Create Button */}
+        <Button
+          onClick={handleCreateBot}
+          disabled={!isFormValid || createBotMutation.isPending}
+          className="w-full bg-[#00d2ce] hover:bg-[#00b8b4] text-black font-semibold"
         >
-          {isCreating ? "Creating Bot..." : "Create Trading Bot"}
+          {createBotMutation.isPending ? "Creating Bot..." : "Create Trading Bot"}
         </Button>
 
+        {/* Info Box */}
         <div className="text-sm text-muted-foreground p-4 border rounded-lg bg-muted/50">
           <p className="font-semibold mb-2">How it works:</p>
           <ul className="space-y-1 text-xs">
@@ -118,6 +248,25 @@ export function TradingBotCreator() {
             <li>• Bot deploys on Aptos blockchain automatically</li>
             <li>• Monitor performance in real-time</li>
           </ul>
+        </div>
+
+        {/* Gas Fee Notice */}
+        <div className="text-sm p-4 border rounded-lg bg-blue-50 border-blue-200">
+          <p className="font-semibold text-blue-800 mb-2">⚠️ Need APT for gas fees?</p>
+          <p className="text-blue-700 text-xs mb-2">
+            Creating a bot requires APT tokens to pay for transaction gas fees.
+          </p>
+          <p className="text-blue-600 text-xs">
+            Get free testnet APT from the{" "}
+            <a 
+              href="https://aptoslabs.com/testnet-faucet" 
+              target="_blank" 
+              rel="noopener noreferrer"
+              className="underline hover:text-blue-800"
+            >
+              Aptos Testnet Faucet
+            </a>
+          </p>
         </div>
       </CardContent>
     </Card>

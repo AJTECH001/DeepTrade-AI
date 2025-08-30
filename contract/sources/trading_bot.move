@@ -6,17 +6,12 @@ module trading_bot_addr::trading_bot {
     // Importing standard Move libraries for common functionality
     use std::string::{Self, String}; // String manipulation utilities
     use std::vector; // Dynamic array operations
-    use std::option::{Self, Option}; // Optional value handling
     use std::signer; // Signer type for authentication
-    use std::timestamp; // Timestamp utilities for time-based operations
+    use aptos_std::timestamp; // Timestamp utilities for time-based operations
     
     // Importing Aptos framework modules for core blockchain functionality
-    use aptos_framework::object::{Self, ExtendRef}; // Object management for resources
-    use aptos_framework::coin::{Self, Coin}; // Coin management for fungible tokens
-    use aptos_framework::fungible_asset::{Self, FungibleAsset}; // Fungible asset management
-    use aptos_framework::account; // Account management utilities
     use aptos_framework::event::{Self, EventHandle}; // Event emission and handling
-    use aptos_framework::resource_account; // Resource account utilities
+    use aptos_framework::account; // Account management utilities
 
     // ======================== Error Codes ========================
     // Error codes for specific failure cases to provide clear error handling
@@ -43,6 +38,8 @@ module trading_bot_addr::trading_bot {
     const MAX_DAILY_TRADES: u8 = 50;
     /// Maximum position size as a percentage of the bot's balance (20%)
     const MAX_POSITION_SIZE_PERCENT: u8 = 20;
+    /// Seconds in a day
+    const SECONDS_PER_DAY: u64 = 86400;
 
     // ======================== Data Structures ========================
     
@@ -54,7 +51,8 @@ module trading_bot_addr::trading_bot {
         name: String, // Human-readable name of the bot
         strategy: String, // Trading strategy description (e.g., "mean_reversion")
         balance: u64, // Current balance in micro USDC
-        performance: i64, // Profit and loss (P&L) in micro USDC (signed for losses)
+        performance: u64, // Total profit in micro USDC
+        total_loss: u64, // Total loss in micro USDC (tracked separately)
         active: bool, // Whether the bot is active and can execute trades
         created_at: u64, // Timestamp of bot creation (in seconds)
         last_trade_at: u64, // Timestamp of the last trade executed
@@ -83,7 +81,8 @@ module trading_bot_addr::trading_bot {
         trade_type: u8, // 0 for buy, 1 for sell
         amount: u64, // Trade amount in micro USDC
         price: u64, // Price at which the trade was executed
-        pnl: i64, // Profit or loss from the trade (signed)
+        profit: u64, // Profit from the trade
+        loss: u64, // Loss from the trade
     }
 
     /// Bot performance data for the global leaderboard
@@ -92,7 +91,7 @@ module trading_bot_addr::trading_bot {
         bot_id: u64, // Unique bot identifier
         owner: address, // Bot owner's address
         name: String, // Bot name
-        performance: i64, // Total P&L in micro USDC
+        net_performance: u64, // Net performance (profit - loss) in micro USDC
         total_trades: u64, // Total trades executed
         win_rate: u64, // Percentage of profitable trades (0-100)
     }
@@ -120,17 +119,16 @@ module trading_bot_addr::trading_bot {
         trade_type: u8, // 0 for buy, 1 for sell
         amount: u64, // Trade amount
         price: u64, // Trade price
-        pnl: i64, // Profit or loss from the trade
+        profit: u64, // Profit from the trade
+        loss: u64, // Loss from the trade
     }
 
     struct BotPerformanceUpdatedEvent has drop, store {
         bot_id: u64, // ID of the bot
-        new_performance: i64, // Updated P&L
+        new_performance: u64, // Updated net performance
         total_trades: u64, // Updated total trade count
     }
 
-    // ======================== Global Storage ========================
-    
     /// Stores event handles for emitting bot-related events
     /// Stored as a resource with `key` ability
     struct TradingBotEvents has key {
@@ -144,8 +142,6 @@ module trading_bot_addr::trading_bot {
     /// Initializes the module by creating global storage resources
     /// Called once when the module is deployed
     fun init_module(sender: &signer) {
-        let sender_addr = signer::address_of(sender); // Get the deployer's address
-        
         // Initialize the global registry to track all bots
         move_to(sender, TradingBotRegistry {
             total_bots: 0, // No bots created yet
@@ -156,88 +152,89 @@ module trading_bot_addr::trading_bot {
 
         // Initialize event handles for emitting events
         move_to(sender, TradingBotEvents {
-            bot_created_events: event::new_event_handle<BotCreatedEvent>(sender),
-            trade_executed_events: event::new_event_handle<TradeExecutedEvent>(sender),
-            performance_updated_events: event::new_event_handle<BotPerformanceUpdatedEvent>(sender),
+            bot_created_events: account::new_event_handle<BotCreatedEvent>(sender),
+            trade_executed_events: account::new_event_handle<TradeExecutedEvent>(sender),
+            performance_updated_events: account::new_event_handle<BotPerformanceUpdatedEvent>(sender),
         });
     }
 
     // ======================== Bot Management Functions ========================
 
-    /// Creates a new trading bot with specified parameters
-    /// Only the signer (owner) can create a bot
-    /// Acquires global registry and events for updates
-    public entry fun create_bot(
-        sender: &signer,
-        name: String, // Bot name
-        strategy: String, // Trading strategy
-        initial_balance: u64, // Initial bot balance
-        max_position_size: u64, // Max trade size
-        stop_loss_percent: u8, // Stop loss percentage
-        max_trades_per_day: u8, // Max daily trades
-        max_daily_loss: u64, // Max daily loss limit
-    ) acquires TradingBotRegistry, TradingBotEvents {
-        let sender_addr = signer::address_of(sender); // Get the caller's address
-        
-        // Validate input parameters to ensure correctness
-        assert!(string::length(&name) > 0, EINVALID_TRADE_PARAMS); // Name must not be empty
-        assert!(string::length(&strategy) > 0, EINVALID_TRADE_PARAMS); // Strategy must not be empty
-        assert!(initial_balance >= MIN_BOT_BALANCE, EINSUFFICIENT_BALANCE); // Ensure minimum balance
-        assert!(stop_loss_percent <= 100, EINVALID_TRADE_PARAMS); // Stop loss must be 0-100%
-        assert!(max_trades_per_day <= MAX_DAILY_TRADES, EINVALID_TRADE_PARAMS); // Respect max daily trades limit
+/// Creates a new trading bot with specified parameters
+/// Only the signer (owner) can create a bot
+/// Acquires global registry and events for updates
+public entry fun create_bot(
+    sender: &signer,
+    name: String, // Bot name
+    strategy: String, // Trading strategy
+    initial_balance: u64, // Initial bot balance
+    max_position_size: u64, // Max trade size
+    stop_loss_percent: u8, // Stop loss percentage
+    max_trades_per_day: u8, // Max daily trades
+    max_daily_loss: u64, // Max daily loss limit
+) acquires TradingBotRegistry, TradingBotEvents {
+    let sender_addr = signer::address_of(sender); // Get the caller's address
+    
+    // Validate input parameters to ensure correctness
+    assert!(string::length(&name) > 0, EINVALID_TRADE_PARAMS); // Name must not be empty
+    assert!(string::length(&strategy) > 0, EINVALID_TRADE_PARAMS); // Strategy must not be empty
+    assert!(initial_balance >= MIN_BOT_BALANCE, EINSUFFICIENT_BALANCE); // Ensure minimum balance
+    assert!(stop_loss_percent <= 100, EINVALID_TRADE_PARAMS); // Stop loss must be 0-100%
+    assert!(max_trades_per_day <= MAX_DAILY_TRADES, EINVALID_TRADE_PARAMS); // Respect max daily trades limit
 
-        // Access the global registry to assign a new bot ID
-        let registry = borrow_global_mut<TradingBotRegistry>(@trading_bot_addr);
-        let bot_id = registry.total_bots + 1; // Incremental bot ID
+    // Access the global registry to assign a new bot ID
+    let registry = borrow_global_mut<TradingBotRegistry>(@trading_bot_addr);
+    let bot_id = registry.total_bots + 1; // Incremental bot ID
 
-        // Create a new bot with the provided configuration
-        let bot = TradingBot {
-            owner: sender_addr,
-            bot_id,
-            name,
-            strategy,
-            balance: initial_balance,
-            performance: 0, // Initial P&L is zero
-            active: true, // Bot starts active
-            created_at: timestamp::now_seconds(), // Current timestamp
-            last_trade_at: 0, // No trades yet
-            total_trades: 0, // No trades executed
-            daily_trades: 0, // No daily trades yet
-            daily_trades_reset_at: timestamp::now_seconds(), // Set reset time
-            risk_settings: RiskSettings {
-                max_position_size,
-                stop_loss_percent,
-                max_trades_per_day,
-                max_daily_loss,
-            },
-            trade_history: vector::empty(), // Empty trade history
-        };
+    // Store the name before creating the bot (since we need it for the event after moving)
+    let bot_name_copy = name;
 
-        // Generate a deterministic address for the bot based on its ID
-        let bot_addr = account::create_resource_address(&@trading_bot_addr, &bot_id.to_bytes());
-        // Store the bot at the computed address
-        move_to(sender, bot);
+    // Create a new bot with the provided configuration
+    let bot = TradingBot {
+        owner: sender_addr,
+        bot_id,
+        name,
+        strategy,
+        balance: initial_balance,
+        performance: 0, // Initial profit is zero
+        total_loss: 0, // Initial loss is zero
+        active: true, // Bot starts active
+        created_at: timestamp::now_seconds(), // Current timestamp
+        last_trade_at: 0, // No trades yet
+        total_trades: 0, // No trades executed
+        daily_trades: 0, // No daily trades yet
+        daily_trades_reset_at: timestamp::now_seconds(), // Set reset time
+        risk_settings: RiskSettings {
+            max_position_size,
+            stop_loss_percent,
+            max_trades_per_day,
+            max_daily_loss,
+        },
+        trade_history: vector::empty(), // Empty trade history
+    };
 
-        // Update the global registry
-        registry.total_bots = bot_id; // Increment total bots
-        vector::push_back(&mut registry.bot_creators, sender_addr); // Record creator
+    // Store the bot at the sender's address
+    move_to(sender, bot);
 
-        // Emit a bot creation event for transparency
-        let events = borrow_global_mut<TradingBotEvents>(@trading_bot_addr);
-        event::emit_event(&mut events.bot_created_events, BotCreatedEvent {
-            bot_id,
-            owner: sender_addr,
-            name: bot.name,
-            initial_balance,
-        });
-    }
+    // Update the global registry
+    registry.total_bots = bot_id; // Increment total bots
+    vector::push_back(&mut registry.bot_creators, sender_addr); // Record creator
+
+    // Emit a bot creation event for transparency (using the copied name)
+    let events = borrow_global_mut<TradingBotEvents>(@trading_bot_addr);
+    event::emit_event(&mut events.bot_created_events, BotCreatedEvent {
+        bot_id,
+        owner: sender_addr,
+        name: bot_name_copy, // Use the copied name instead of bot.name
+        initial_balance,
+    });
+}
 
     /// Executes a trade for a specified bot
     /// Only the bot owner can execute trades
     /// Validates risk limits and updates bot state
     public entry fun execute_trade(
         sender: &signer,
-        bot_id: u64, // Bot ID to execute trade for
         trade_type: u8, // 0 for buy, 1 for sell
         amount: u64, // Trade amount
         price: u64, // Trade price
@@ -249,16 +246,16 @@ module trading_bot_addr::trading_bot {
         assert!(amount > 0, EINVALID_TRADE_PARAMS); // Amount must be positive
         assert!(price > 0, EINVALID_TRADE_PARAMS); // Price must be positive
 
-        // Access the bot's state
-        let bot = borrow_global_mut<TradingBot>(get_bot_address(bot_id));
+        // Access the bot's state at the sender's address
+        assert!(exists<TradingBot>(sender_addr), EBOT_NOT_FOUND);
+        let bot = borrow_global_mut<TradingBot>(sender_addr);
         
-        // Verify ownership and bot status
-        assert!(bot.owner == sender_addr, EUNAUTHORIZED); // Only owner can execute trades
+        // Verify bot status
         assert!(bot.active, EBOT_NOT_ACTIVE); // Bot must be active
 
         // Check and reset daily trade counter if 24 hours have passed
         let current_time = timestamp::now_seconds();
-        if (current_time - bot.daily_trades_reset_at) >= 86400 { // 24 hours in seconds
+        if ((current_time - bot.daily_trades_reset_at) >= SECONDS_PER_DAY) {
             bot.daily_trades = 0; // Reset daily trade count
             bot.daily_trades_reset_at = current_time; // Update reset time
         };
@@ -267,17 +264,18 @@ module trading_bot_addr::trading_bot {
         assert!(bot.daily_trades < bot.risk_settings.max_trades_per_day, ERISK_LIMIT_EXCEEDED); // Check daily trade limit
         assert!(amount <= bot.risk_settings.max_position_size, ERISK_LIMIT_EXCEEDED); // Check position size limit
 
-        // Calculate P&L (simplified logic for demonstration)
-        // In a real implementation, P&L would depend on market prices and position tracking
-        let pnl = if (trade_type == 0) { // Buy
-            -(amount as i64) // Negative P&L for buys (cost)
+        // Calculate profit/loss (simplified logic for demonstration)
+        // In a real implementation, this would depend on actual market data
+        let (profit, loss) = if (trade_type == 0) { // Buy
+            (0, amount / 100) // Small loss for buys (transaction cost simulation)
         } else { // Sell
-            (amount as i64) // Positive P&L for sells (revenue)
+            (amount / 50, 0) // Small profit for sells (revenue simulation)
         };
 
         // Update bot state
-        bot.balance = bot.balance + (amount as u64); // Update balance (simplified)
-        bot.performance = bot.performance + pnl; // Update P&L
+        bot.balance = bot.balance + amount; // Update balance (simplified)
+        bot.performance = bot.performance + profit; // Update profit
+        bot.total_loss = bot.total_loss + loss; // Update loss
         bot.last_trade_at = current_time; // Record trade time
         bot.total_trades = bot.total_trades + 1; // Increment total trades
         bot.daily_trades = bot.daily_trades + 1; // Increment daily trades
@@ -288,7 +286,8 @@ module trading_bot_addr::trading_bot {
             trade_type,
             amount,
             price,
-            pnl,
+            profit,
+            loss,
         };
         vector::push_back(&mut bot.trade_history, trade_record);
 
@@ -296,18 +295,26 @@ module trading_bot_addr::trading_bot {
         let registry = borrow_global_mut<TradingBotRegistry>(@trading_bot_addr);
         registry.total_volume = registry.total_volume + amount;
 
+        // Calculate net performance for event
+        let net_performance = if (bot.performance >= bot.total_loss) {
+            bot.performance - bot.total_loss
+        } else {
+            0
+        };
+
         // Emit trade execution event
         let events = borrow_global_mut<TradingBotEvents>(@trading_bot_addr);
         event::emit_event(&mut events.trade_executed_events, TradeExecutedEvent {
-            bot_id,
+            bot_id: bot.bot_id,
             trade_type,
             amount,
             price,
-            pnl,
+            profit,
+            loss,
         });
 
         // Update the leaderboard with the new performance
-        update_leaderboard(bot_id, bot.owner, bot.name, bot.performance, bot.total_trades);
+        update_leaderboard(bot.bot_id, bot.owner, bot.name, net_performance, bot.total_trades);
     }
 
     /// Updates the global leaderboard with a bot's performance
@@ -316,14 +323,14 @@ module trading_bot_addr::trading_bot {
         bot_id: u64,
         owner: address,
         name: String,
-        performance: i64,
+        net_performance: u64,
         total_trades: u64,
     ) acquires TradingBotRegistry, TradingBotEvents {
         let registry = borrow_global_mut<TradingBotRegistry>(@trading_bot_addr);
         
         // Calculate win rate (simplified: based on performance vs. trades)
         let win_rate = if (total_trades > 0) {
-            (performance as u64) * 100 / total_trades // Percentage calculation
+            (net_performance * 100) / total_trades // Percentage calculation
         } else {
             0 // No trades, so win rate is 0
         };
@@ -333,7 +340,7 @@ module trading_bot_addr::trading_bot {
             bot_id,
             owner,
             name,
-            performance,
+            net_performance,
             total_trades,
             win_rate,
         };
@@ -342,6 +349,7 @@ module trading_bot_addr::trading_bot {
         let leaderboard = &mut registry.leaderboard;
         let i = 0;
         let len = vector::length(leaderboard);
+        let found = false;
         
         // Check if the bot is already in the leaderboard
         while (i < len) {
@@ -349,46 +357,50 @@ module trading_bot_addr::trading_bot {
             if (existing.bot_id == bot_id) {
                 // Update existing entry
                 *vector::borrow_mut(leaderboard, i) = bot_performance;
-                return
+                found = true;
+                break
             };
             i = i + 1;
         };
 
         // If not found, add a new entry to the leaderboard
-        vector::push_back(leaderboard, bot_performance);
+        if (!found) {
+            vector::push_back(leaderboard, bot_performance);
+        };
 
         // Emit performance update event
         let events = borrow_global_mut<TradingBotEvents>(@trading_bot_addr);
         event::emit_event(&mut events.performance_updated_events, BotPerformanceUpdatedEvent {
             bot_id,
-            new_performance: performance,
+            new_performance: net_performance,
             total_trades,
         });
     }
 
     // ======================== View Functions ========================
 
+    #[view]
     /// Retrieves core information about a bot
     /// View function for querying bot state without modification
-    #[view]
-    public fun get_bot(bot_id: u64): (address, String, String, u64, i64, bool, u64, u64) acquires TradingBot {
-        let bot = borrow_global<TradingBot>(get_bot_address(bot_id)); // Access bot state
+    public fun get_bot(bot_owner: address): (address, String, String, u64, u64, u64, bool, u64, u64) acquires TradingBot {
+        let bot = borrow_global<TradingBot>(bot_owner); // Access bot state
         (
             bot.owner,
             bot.name,
             bot.strategy,
             bot.balance,
             bot.performance,
+            bot.total_loss,
             bot.active,
             bot.total_trades,
             bot.created_at,
         )
     }
 
-    /// Retrieves a bot's risk settings
     #[view]
-    public fun get_bot_risk_settings(bot_id: u64): (u64, u8, u8, u64) acquires TradingBot {
-        let bot = borrow_global<TradingBot>(get_bot_address(bot_id)); // Access bot state
+    /// Retrieves a bot's risk settings
+    public fun get_bot_risk_settings(bot_owner: address): (u64, u8, u8, u64) acquires TradingBot {
+        let bot = borrow_global<TradingBot>(bot_owner); // Access bot state
         let settings = &bot.risk_settings;
         (
             settings.max_position_size,
@@ -398,62 +410,42 @@ module trading_bot_addr::trading_bot {
         )
     }
 
-    /// Retrieves the global leaderboard
     #[view]
+    /// Retrieves the global leaderboard
     public fun get_leaderboard(): vector<BotPerformance> acquires TradingBotRegistry {
         let registry = borrow_global<TradingBotRegistry>(@trading_bot_addr);
         registry.leaderboard // Return the leaderboard
     }
 
-    /// Retrieves global registry statistics
     #[view]
+    /// Retrieves global registry statistics
     public fun get_registry_stats(): (u64, u64) acquires TradingBotRegistry {
         let registry = borrow_global<TradingBotRegistry>(@trading_bot_addr);
         (registry.total_bots, registry.total_volume) // Return total bots and volume
     }
 
-    /// Retrieves all bot IDs owned by a specific user
     #[view]
-    public fun get_user_bots(user_addr: address): vector<u64> acquires TradingBotRegistry {
-        let registry = borrow_global<TradingBotRegistry>(@trading_bot_addr);
-        let bot_ids = vector::empty<u64>(); // Initialize empty vector
-        let i = 1;
-        // Iterate through all possible bot IDs
-        while (i <= registry.total_bots) {
-            if (exists<TradingBot>(get_bot_address(i))) { // Check if bot exists
-                let bot = borrow_global<TradingBot>(get_bot_address(i));
-                if (bot.owner == user_addr) { // If owned by the user
-                    vector::push_back(&mut bot_ids, i); // Add bot ID
-                };
-            };
-            i = i + 1;
-        };
-        bot_ids // Return list of bot IDs
-    }
-
-    // ======================== Helper Functions ========================
-
-    /// Generates a deterministic address for a bot based on its ID
-    fun get_bot_address(bot_id: u64): address {
-        account::create_resource_address(&@trading_bot_addr, &bot_id.to_bytes())
+    /// Check if a user has a bot
+    public fun has_bot(user_addr: address): bool {
+        exists<TradingBot>(user_addr)
     }
 
     // ======================== Test Functions ========================
 
-    /// Initializes the module for testing purposes
     #[test_only]
+    /// Initializes the module for testing purposes
     public fun init_module_for_test(sender: &signer) {
         init_module(sender); // Call the main initialization function
     }
 
-    /// Creates a test bot with default risk settings
     #[test_only]
+    /// Creates a test bot with default risk settings
     public fun create_test_bot(
         sender: &signer,
         name: String,
         strategy: String,
         initial_balance: u64,
-    ) {
+    ) acquires TradingBotRegistry, TradingBotEvents {
         // Create a bot with default risk settings for testing
         create_bot(sender, name, strategy, initial_balance, 1000000, 10, 20, 500000);
     }

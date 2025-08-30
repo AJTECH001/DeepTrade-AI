@@ -1,0 +1,247 @@
+import { InputTransactionData } from "@aptos-labs/wallet-adapter-react";
+import { aptosClient } from "@/utils/aptosClient";
+import { MODULE_ADDRESS } from "@/constants";
+import { 
+  TradingBotData, 
+  BotPerformanceData, 
+  RegistryStats, 
+  CreateBotParams, 
+  ContractResponse,
+  ContractFunction 
+} from "@/types/contract";
+
+export class ContractService {
+  private moduleAddress: string;
+
+  constructor() {
+    this.moduleAddress = MODULE_ADDRESS || "";
+  }
+
+  private validateModuleAddress(): void {
+    if (!this.moduleAddress || this.moduleAddress === "0xYOUR_DEPLOYED_CONTRACT_ADDRESS_HERE") {
+      throw new Error(
+        "Contract not deployed. Please deploy your trading_bot contract to Aptos testnet and update MODULE_ADDRESS in constants.ts"
+      );
+    }
+  }
+
+  async createBot(
+    params: CreateBotParams,
+    signAndSubmitTransaction: (transaction: InputTransactionData) => Promise<any>
+  ): Promise<ContractResponse<{ bot_id: number }>> {
+    try {
+      this.validateModuleAddress();
+
+      const transaction: InputTransactionData = {
+        data: {
+          function: `${this.moduleAddress}::trading_bot::${ContractFunction.CREATE_BOT}`,
+          functionArguments: [
+            params.name,
+            params.strategy,
+            params.initial_balance.toString(),
+            params.max_position_size.toString(),
+            params.stop_loss_percent.toString(),
+            params.max_trades_per_day.toString(),
+            params.max_daily_loss.toString(),
+          ],
+        },
+      };
+
+      console.log("Submitting transaction:", transaction);
+      const response = await signAndSubmitTransaction(transaction);
+      console.log("Transaction response:", response);
+      
+      // Wait for transaction to be processed
+      if (response.hash) {
+        console.log("Waiting for transaction:", response.hash);
+        const txResult = await aptosClient().waitForTransaction({
+          transactionHash: response.hash,
+        });
+        console.log("Transaction confirmed:", txResult);
+      }
+
+      console.log("Bot creation successful, returning success response");
+      const successResponse = {
+        success: true,
+        data: { bot_id: Date.now() }, // Simplified - in real implementation, extract from events
+      };
+      console.log("Success response:", successResponse);
+      return successResponse;
+    } catch (error) {
+      console.error("Create bot error:", error);
+      const errorResponse = {
+        success: false,
+        error: error instanceof Error ? error.message : "Failed to create bot",
+      };
+      console.log("Error response:", errorResponse);
+      return errorResponse;
+    }
+  }
+
+  async getUserBot(userAddress: string): Promise<ContractResponse<TradingBotData>> {
+    try {
+      this.validateModuleAddress();
+      const client = aptosClient();
+      
+      console.log("Checking if user has bot for address:", userAddress);
+      console.log("Module address:", this.moduleAddress);
+      
+      // Check if user has a bot
+      const hasBotResponse = await client.view({
+        payload: {
+          function: `${this.moduleAddress}::trading_bot::${ContractFunction.HAS_BOT}`,
+          functionArguments: [userAddress],
+        },
+      });
+
+      console.log("Has bot response:", hasBotResponse);
+
+      if (!hasBotResponse[0]) {
+        console.log("No bot found for user");
+        return {
+          success: false,
+          error: "No bot found for this user",
+        };
+      }
+
+      console.log("Bot found, fetching bot data...");
+      
+      // Get bot data
+      const botResponse = await client.view({
+        payload: {
+          function: `${this.moduleAddress}::trading_bot::${ContractFunction.GET_BOT}`,
+          functionArguments: [userAddress],
+        },
+      });
+
+      console.log("Bot data response:", botResponse);
+
+      const [owner, name, strategy, balance, performance, total_loss, active, total_trades, created_at] = botResponse;
+
+      const botData = {
+        owner: owner as string,
+        bot_id: Date.now(), // Simplified
+        name: name as string,
+        strategy: strategy as string,
+        balance: balance as number,
+        performance: performance as number,
+        total_loss: total_loss as number,
+        active: active as boolean,
+        total_trades: total_trades as number,
+        created_at: created_at as number,
+      };
+
+      console.log("Parsed bot data:", botData);
+
+      return {
+        success: true,
+        data: botData,
+      };
+    } catch (error) {
+      console.error("Error in getUserBot:", error);
+      return {
+        success: false,
+        error: error instanceof Error ? error.message : "Failed to fetch bot data",
+      };
+    }
+  }
+
+  async getLeaderboard(): Promise<ContractResponse<BotPerformanceData[]>> {
+    try {
+      this.validateModuleAddress();
+      const client = aptosClient();
+      
+      const response = await client.view({
+        payload: {
+          function: `${this.moduleAddress}::trading_bot::${ContractFunction.GET_LEADERBOARD}`,
+          functionArguments: [],
+        },
+      });
+
+      console.log("Raw leaderboard response:", response);
+      const leaderboardData = response[0] as any[];
+      
+      if (!Array.isArray(leaderboardData)) {
+        console.log("Leaderboard data is not an array, returning empty array");
+        return {
+          success: true,
+          data: [],
+        };
+      }
+      
+      const leaderboard: BotPerformanceData[] = leaderboardData.map((entry) => ({
+        bot_id: entry.bot_id,
+        owner: entry.owner,
+        name: entry.name,
+        net_performance: entry.net_performance,
+        total_trades: entry.total_trades,
+        win_rate: entry.win_rate,
+      }));
+
+      return {
+        success: true,
+        data: leaderboard,
+      };
+    } catch (error) {
+      return {
+        success: false,
+        error: error instanceof Error ? error.message : "Failed to fetch leaderboard",
+      };
+    }
+  }
+
+  async getRegistryStats(): Promise<ContractResponse<RegistryStats>> {
+    try {
+      this.validateModuleAddress();
+      const client = aptosClient();
+      
+      const response = await client.view({
+        payload: {
+          function: `${this.moduleAddress}::trading_bot::${ContractFunction.GET_REGISTRY_STATS}`,
+          functionArguments: [],
+        },
+      });
+
+      const [total_bots, total_volume] = response;
+
+      return {
+        success: true,
+        data: {
+          total_bots: total_bots as number,
+          total_volume: total_volume as number,
+        },
+      };
+    } catch (error) {
+      return {
+        success: false,
+        error: error instanceof Error ? error.message : "Failed to fetch registry stats",
+      };
+    }
+  }
+
+  async hasBot(userAddress: string): Promise<ContractResponse<boolean>> {
+    try {
+      this.validateModuleAddress();
+      const client = aptosClient();
+      
+      const response = await client.view({
+        payload: {
+          function: `${this.moduleAddress}::trading_bot::${ContractFunction.HAS_BOT}`,
+          functionArguments: [userAddress],
+        },
+      });
+
+      return {
+        success: true,
+        data: response[0] as boolean,
+      };
+    } catch (error) {
+      return {
+        success: false,
+        error: error instanceof Error ? error.message : "Failed to check bot existence",
+      };
+    }
+  }
+}
+
+export const contractService = new ContractService();
