@@ -3,7 +3,11 @@ export const formatBalance = (balance: number): string => {
 };
 
 export const formatPerformance = (performance: number): string => {
-  const formatted = (performance / 1000000).toFixed(3);
+  return (performance / 1000000).toFixed(3);
+};
+
+export const formatPerformanceWithSign = (performance: number): string => {
+  const formatted = formatPerformance(performance);
   return performance >= 0 ? `+${formatted}` : formatted;
 };
 

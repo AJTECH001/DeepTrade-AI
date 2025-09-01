@@ -110,26 +110,50 @@ export function UserBots() {
   }
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle>My Trading Bots</CardTitle>
-        <CardDescription>
-          Manage your AI-powered trading bot and monitor its performance.
-        </CardDescription>
-      </CardHeader>
-      <CardContent>
-        <BotPerformanceCard 
-          bot={userBot}
-          onViewDetails={(botId) => {
-            console.log('View details for bot:', botId);
-            // TODO: Implement bot details modal
-          }}
-          onToggleStatus={(botId, currentStatus) => {
-            console.log('Toggle status for bot:', botId, currentStatus);
-            // TODO: Implement bot status toggle
-          }}
-        />
-      </CardContent>
-    </Card>
+    <div className="space-y-4">
+      <Card>
+        <CardHeader>
+          <CardTitle>My Trading Bot</CardTitle>
+          <CardDescription>
+            Manage your AI-powered trading bot and monitor its performance.
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <BotPerformanceCard 
+            bot={userBot}
+            onViewDetails={(botId) => {
+              console.log('View details for bot:', botId);
+              // TODO: Implement bot details modal
+            }}
+            onToggleStatus={(botId, currentStatus) => {
+              console.log('Toggle status for bot:', botId, currentStatus);
+              // TODO: Implement bot status toggle
+            }}
+          />
+          
+          {/* Bot Stats Summary */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 pt-4 border-t">
+            <div className="text-center">
+              <h4 className="text-sm font-medium text-gray-500">Total Trades</h4>
+              <p className="text-2xl font-bold text-white">{userBot.total_trades}</p>
+            </div>
+            <div className="text-center">
+              <h4 className="text-sm font-medium text-gray-500">Win Rate</h4>
+              <p className="text-2xl font-bold text-green-500">
+                {userBot.total_trades > 0 
+                  ? Math.round((userBot.performance / (userBot.performance + userBot.total_loss)) * 100)
+                  : 0}%
+              </p>
+            </div>
+            <div className="text-center">
+              <h4 className="text-sm font-medium text-gray-500">Status</h4>
+              <p className={`text-2xl font-bold ${userBot.active ? 'text-green-500' : 'text-red-500'}`}>
+                {userBot.active ? 'Active' : 'Inactive'}
+              </p>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+    </div>
   );
 }

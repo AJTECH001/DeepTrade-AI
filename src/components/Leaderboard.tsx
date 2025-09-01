@@ -75,25 +75,89 @@ export function Leaderboard() {
           <CardDescription>No trading bots found.</CardDescription>
         </CardHeader>
         <CardContent>
-          <p className="text-muted-foreground">
-            Be the first to create a trading bot and claim the top spot!
-          </p>
+          <div className="space-y-4">
+            <p className="text-muted-foreground">
+              Be the first to create a trading bot and claim the top spot!
+            </p>
+            
+            {/* Debug info for leaderboard */}
+            <div className="p-3 border rounded-lg bg-gray-50 border-gray-200">
+              <p className="text-xs text-gray-600 mb-2">Debug Info:</p>
+              <p className="text-xs text-gray-500">Leaderboard data: {leaderboard ? JSON.stringify(leaderboard) : 'null'}</p>
+              <p className="text-xs text-gray-500">Loading: {isLoading ? 'Yes' : 'No'}</p>
+              <p className="text-xs text-gray-500">Error: {error ? 'Yes' : 'No'}</p>
+              <Button 
+                onClick={() => {
+                  console.log("Manual leaderboard refetch triggered");
+                  refetch();
+                }} 
+                variant="outline" 
+                size="sm"
+                className="mt-2"
+              >
+                Refresh Leaderboard
+              </Button>
+            </div>
+          </div>
         </CardContent>
       </Card>
     );
   }
 
+  // Sort leaderboard by net performance (highest first)
+  const sortedLeaderboard = [...leaderboard].sort((a, b) => {
+    const aPerformance = parseFloat(formatPerformance(a.net_performance));
+    const bPerformance = parseFloat(formatPerformance(b.net_performance));
+    return bPerformance - aPerformance;
+  });
+
+  const bestBot = sortedLeaderboard[0];
+
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle>Trading Leaderboard</CardTitle>
-        <CardDescription>
-          Top performing AI trading bots on the DeepTrade AI platform.
-        </CardDescription>
-      </CardHeader>
-      <CardContent>
-        <div className="space-y-3">
-          {leaderboard.map((entry, index) => {
+    <div className="space-y-6">
+      {/* Best Bot Highlight */}
+      {bestBot && (
+        <Card className="border-yellow-500 bg-gradient-to-r from-yellow-50 to-yellow-100">
+          <CardHeader>
+            <CardTitle className="text-yellow-800 flex items-center gap-2">
+              🏆 Best Performing Bot
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="flex items-center justify-between">
+              <div>
+                <h3 className="text-lg font-bold text-yellow-900">{bestBot.name}</h3>
+                <p className="text-sm text-yellow-700">by {formatAddress(bestBot.owner)}</p>
+              </div>
+              <div className="text-right">
+                <div className="text-2xl font-bold text-yellow-900">
+                  +{parseFloat(formatPerformance(bestBot.net_performance)).toFixed(3)} USDC
+                </div>
+                <div className="flex items-center gap-2 mt-1">
+                  <Badge variant="outline" className="text-xs bg-yellow-200 text-yellow-800">
+                    {bestBot.total_trades} trades
+                  </Badge>
+                  <Badge variant="outline" className="text-xs bg-yellow-200 text-yellow-800">
+                    {bestBot.win_rate}% win rate
+                  </Badge>
+                </div>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Full Leaderboard */}
+      <Card>
+        <CardHeader>
+          <CardTitle>Trading Leaderboard</CardTitle>
+          <CardDescription>
+            All AI trading bots on the DeepTrade AI platform ranked by performance.
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="space-y-3">
+            {sortedLeaderboard.map((entry, index) => {
             const rank = index + 1;
             const performanceUSD = parseFloat(formatPerformance(entry.net_performance));
             
@@ -132,9 +196,10 @@ export function Leaderboard() {
                 </div>
               </div>
             );
-          })}
-        </div>
-      </CardContent>
-    </Card>
+            })}
+          </div>
+        </CardContent>
+      </Card>
+    </div>
   );
 } 

@@ -6,8 +6,7 @@ interface LoadingSkeletonProps {
 
 export function LoadingSkeleton({ 
   count = 3, 
-  height = 80, 
-  variant = "rectangular" 
+  height = 80
 }: LoadingSkeletonProps) {
   return (
     <div className="space-y-4">

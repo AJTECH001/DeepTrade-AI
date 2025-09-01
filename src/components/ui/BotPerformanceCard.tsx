@@ -1,7 +1,6 @@
 import { Card, CardContent } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
 import { TradingBotData } from "@/types/contract";
-import { formatBalance, formatPerformance, formatTimestamp } from "@/utils/formatters";
+import { formatBalance, formatTimestamp } from "@/utils/formatters";
 import { StatusBadge } from "./StatusBadge";
 
 interface BotPerformanceCardProps {
@@ -11,13 +10,11 @@ interface BotPerformanceCardProps {
 }
 
 export function BotPerformanceCard({ 
-  bot, 
-  onViewDetails, 
-  onToggleStatus 
+  bot
 }: BotPerformanceCardProps) {
   const netPerformance = bot.performance - bot.total_loss;
   const balanceUSD = parseFloat(formatBalance(bot.balance));
-  const performanceUSD = parseFloat(formatPerformance(netPerformance));
+  const performanceUSD = netPerformance / 1000000;
   const winRate = bot.total_trades > 0 ? Math.round((bot.performance / (bot.performance + bot.total_loss)) * 100) : 0;
 
   return (

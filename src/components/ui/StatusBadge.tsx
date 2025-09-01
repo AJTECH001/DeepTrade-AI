@@ -5,7 +5,7 @@ interface StatusBadgeProps {
   size?: "small" | "medium";
 }
 
-export function StatusBadge({ status, size = "small" }: StatusBadgeProps) {
+export function StatusBadge({ status }: StatusBadgeProps) {
   const isActive = status;
   
   return (

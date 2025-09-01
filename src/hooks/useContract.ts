@@ -1,7 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useWallet } from "@aptos-labs/wallet-adapter-react";
 import { contractService } from "@/services/contractService";
-import { CreateBotParams, TradingBotData, BotPerformanceData, RegistryStats } from "@/types/contract";
+import { CreateBotParams } from "@/types/contract";
 import { useToast } from "@/components/ui/use-toast";
 
 export function useUserBot(userAddress?: string) {
