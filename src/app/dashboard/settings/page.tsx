@@ -8,15 +8,16 @@ import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { Switch } from "@/components/ui/switch";
-import { 
-  User, 
-  Shield, 
-  Bell, 
-  Wallet, 
-  Key, 
+import {
+  User,
+  Shield,
+  Bell,
+  Wallet,
+  Key,
   Save,
   AlertTriangle
 } from "lucide-react";
+import { SubscriptionManager } from "@/components/SubscriptionManager";
 
 export default function SettingsPage() {
   return (
@@ -29,24 +30,31 @@ export default function SettingsPage() {
           </p>
         </div>
 
-        <Tabs defaultValue="profile" className="w-full">
-          <TabsList className="grid w-full grid-cols-5 bg-gray-700">
-            <TabsTrigger value="profile" className="data-[state=active]:bg-blue-600">
+        <Tabs defaultValue="subscription" className="w-full">
+          <TabsList className="grid w-full grid-cols-6 bg-gray-700">
+            <TabsTrigger value="subscription" className="data-[state=active]:bg-[#00d2cee6]">
+              Subscription
+            </TabsTrigger>
+            <TabsTrigger value="profile" className="data-[state=active]:bg-[#00d2cee6]">
               Profile
             </TabsTrigger>
-            <TabsTrigger value="security" className="data-[state=active]:bg-blue-600">
+            <TabsTrigger value="security" className="data-[state=active]:bg-[#00d2cee6]">
               Security
             </TabsTrigger>
-            <TabsTrigger value="notifications" className="data-[state=active]:bg-blue-600">
+            <TabsTrigger value="notifications" className="data-[state=active]:bg-[#00d2cee6]">
               Notifications
             </TabsTrigger>
-            <TabsTrigger value="trading" className="data-[state=active]:bg-blue-600">
+            <TabsTrigger value="trading" className="data-[state=active]:bg-[#00d2cee6]">
               Trading
             </TabsTrigger>
-            <TabsTrigger value="api" className="data-[state=active]:bg-blue-600">
+            <TabsTrigger value="api" className="data-[state=active]:bg-[#00d2cee6]">
               API Keys
             </TabsTrigger>
           </TabsList>
+
+          <TabsContent value="subscription" className="mt-6">
+            <SubscriptionManager />
+          </TabsContent>
 
           <TabsContent value="profile" className="mt-6">
             <Card className="bg-[#051419] border-gray-700">

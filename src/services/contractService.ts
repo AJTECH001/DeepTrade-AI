@@ -1,13 +1,17 @@
 import { InputTransactionData } from "@aptos-labs/wallet-adapter-react";
 import { aptosClient } from "@/utils/aptosClient";
 import { MODULE_ADDRESS } from "@/constants";
-import { 
-  TradingBotData, 
-  BotPerformanceData, 
-  RegistryStats, 
-  CreateBotParams, 
+import {
+  TradingBotData,
+  BotPerformanceData,
+  RegistryStats,
+  CreateBotParams,
   ContractResponse,
-  ContractFunction 
+  ContractFunction,
+  UserSubscription,
+  SubscriptionPrices,
+  PurchaseSubscriptionParams,
+  SubscriptionTier
 } from "@/types/contract";
 
 export class ContractService {
@@ -75,6 +79,61 @@ export class ContractService {
       };
       console.log("Error response:", errorResponse);
       return errorResponse;
+    }
+  }
+
+  async getUserBots(userAddress: string): Promise<ContractResponse<TradingBotData[]>> {
+    try {
+      this.validateModuleAddress();
+      const client = aptosClient();
+
+      console.log("Getting all user bots for address:", userAddress);
+      console.log("Module address:", this.moduleAddress);
+
+      // Get all user bots
+      const botsResponse = await client.view({
+        payload: {
+          function: `${this.moduleAddress}::trading_bot::${ContractFunction.GET_USER_BOTS}`,
+          functionArguments: [userAddress],
+        },
+      });
+
+      console.log("User bots response:", botsResponse);
+
+      if (!botsResponse || !botsResponse[0]) {
+        console.log("No bots found for user");
+        return {
+          success: true,
+          data: [], // Return empty array instead of error
+        };
+      }
+
+      const botsData = botsResponse[0] as any[];
+      const bots: TradingBotData[] = botsData.map((bot, index) => ({
+        owner: userAddress,
+        bot_id: index,
+        name: bot.name || `Bot ${index + 1}`,
+        strategy: bot.strategy || "No strategy defined",
+        balance: Number(bot.balance) || 0,
+        performance: Number(bot.net_performance) || 0,
+        total_loss: Number(bot.total_loss) || 0,
+        active: Boolean(bot.active),
+        total_trades: Number(bot.total_trades) || 0,
+        created_at: Number(bot.created_at) || Date.now(),
+      }));
+
+      console.log("Parsed bot data:", bots);
+
+      return {
+        success: true,
+        data: bots,
+      };
+    } catch (error) {
+      console.error("Error in getUserBots:", error);
+      return {
+        success: false,
+        error: error instanceof Error ? error.message : "Failed to fetch user bots",
+      };
     }
   }
 
@@ -223,7 +282,7 @@ export class ContractService {
     try {
       this.validateModuleAddress();
       const client = aptosClient();
-      
+
       const response = await client.view({
         payload: {
           function: `${this.moduleAddress}::trading_bot::${ContractFunction.HAS_BOT}`,
@@ -239,6 +298,180 @@ export class ContractService {
       return {
         success: false,
         error: error instanceof Error ? error.message : "Failed to check bot existence",
+      };
+    }
+  }
+
+  // Subscription related methods
+  async purchaseSubscription(
+    params: PurchaseSubscriptionParams,
+    signAndSubmitTransaction: (transaction: InputTransactionData) => Promise<any>
+  ): Promise<ContractResponse<{ success: boolean }>> {
+    try {
+      this.validateModuleAddress();
+
+      const transaction: InputTransactionData = {
+        data: {
+          function: `${this.moduleAddress}::trading_bot::${ContractFunction.PURCHASE_SUBSCRIPTION}`,
+          functionArguments: [
+            params.tier.toString(),
+          ],
+        },
+      };
+
+      console.log("Submitting subscription purchase transaction:", transaction);
+      const response = await signAndSubmitTransaction(transaction);
+      console.log("Subscription purchase response:", response);
+
+      // Wait for transaction to be processed
+      if (response.hash) {
+        console.log("Waiting for subscription transaction:", response.hash);
+        const txResult = await aptosClient().waitForTransaction({
+          transactionHash: response.hash,
+        });
+        console.log("Subscription transaction confirmed:", txResult);
+      }
+
+      return {
+        success: true,
+        data: { success: true },
+      };
+    } catch (error) {
+      console.error("Purchase subscription error:", error);
+      return {
+        success: false,
+        error: error instanceof Error ? error.message : "Failed to purchase subscription",
+      };
+    }
+  }
+
+  async getUserSubscription(userAddress: string): Promise<ContractResponse<UserSubscription>> {
+    try {
+      this.validateModuleAddress();
+      const client = aptosClient();
+
+      const response = await client.view({
+        payload: {
+          function: `${this.moduleAddress}::trading_bot::${ContractFunction.GET_USER_SUBSCRIPTION}`,
+          functionArguments: [userAddress],
+        },
+      });
+
+      const [tier, expires_at, auto_renew] = response;
+
+      return {
+        success: true,
+        data: {
+          tier: tier as SubscriptionTier,
+          expires_at: expires_at as number,
+          auto_renew: auto_renew as boolean,
+        },
+      };
+    } catch (error) {
+      return {
+        success: false,
+        error: error instanceof Error ? error.message : "Failed to fetch user subscription",
+      };
+    }
+  }
+
+  async getCurrentSubscriptionTier(userAddress: string): Promise<ContractResponse<SubscriptionTier>> {
+    try {
+      this.validateModuleAddress();
+      const client = aptosClient();
+
+      const response = await client.view({
+        payload: {
+          function: `${this.moduleAddress}::trading_bot::${ContractFunction.GET_CURRENT_SUBSCRIPTION_TIER}`,
+          functionArguments: [userAddress],
+        },
+      });
+
+      return {
+        success: true,
+        data: response[0] as SubscriptionTier,
+      };
+    } catch (error) {
+      return {
+        success: false,
+        error: error instanceof Error ? error.message : "Failed to fetch subscription tier",
+      };
+    }
+  }
+
+  async getUserMaxBots(userAddress: string): Promise<ContractResponse<number>> {
+    try {
+      this.validateModuleAddress();
+      const client = aptosClient();
+
+      const response = await client.view({
+        payload: {
+          function: `${this.moduleAddress}::trading_bot::${ContractFunction.GET_USER_MAX_BOTS}`,
+          functionArguments: [userAddress],
+        },
+      });
+
+      return {
+        success: true,
+        data: response[0] as number,
+      };
+    } catch (error) {
+      return {
+        success: false,
+        error: error instanceof Error ? error.message : "Failed to fetch user bot limit",
+      };
+    }
+  }
+
+  async getUserBotCount(userAddress: string): Promise<ContractResponse<number>> {
+    try {
+      this.validateModuleAddress();
+      const client = aptosClient();
+
+      const response = await client.view({
+        payload: {
+          function: `${this.moduleAddress}::trading_bot::${ContractFunction.GET_USER_BOT_COUNT}`,
+          functionArguments: [userAddress],
+        },
+      });
+
+      return {
+        success: true,
+        data: response[0] as number,
+      };
+    } catch (error) {
+      return {
+        success: false,
+        error: error instanceof Error ? error.message : "Failed to fetch user bot count",
+      };
+    }
+  }
+
+  async getSubscriptionPrices(): Promise<ContractResponse<SubscriptionPrices>> {
+    try {
+      this.validateModuleAddress();
+      const client = aptosClient();
+
+      const response = await client.view({
+        payload: {
+          function: `${this.moduleAddress}::trading_bot::${ContractFunction.GET_SUBSCRIPTION_PRICES}`,
+          functionArguments: [],
+        },
+      });
+
+      const [basic_price, premium_price] = response;
+
+      return {
+        success: true,
+        data: {
+          basic_price: basic_price as number,
+          premium_price: premium_price as number,
+        },
+      };
+    } catch (error) {
+      return {
+        success: false,
+        error: error instanceof Error ? error.message : "Failed to fetch subscription prices",
       };
     }
   }

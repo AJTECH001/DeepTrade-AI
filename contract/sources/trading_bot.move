@@ -30,8 +30,10 @@ module trading_bot_addr::trading_bot {
 
     // ======================== Constants ========================
     // Constants defining operational limits for the trading bot system
-    /// Maximum number of bots a single user can create
-    const MAX_BOTS_PER_USER: u64 = 10;
+    /// Maximum number of bots for free users
+    const FREE_USER_MAX_BOTS: u64 = 10;
+    /// Maximum number of bots for basic subscribers
+    const BASIC_USER_MAX_BOTS: u64 = 100;
     /// Minimum balance required to create a bot (1 USDC, assuming 6 decimals)
     const MIN_BOT_BALANCE: u64 = 1000000; // 1 USDC (1e6 micro USDC)
     /// Maximum number of trades a bot can execute in a 24-hour period
@@ -41,11 +43,40 @@ module trading_bot_addr::trading_bot {
     /// Seconds in a day
     const SECONDS_PER_DAY: u64 = 86400;
 
+    // Subscription pricing in APT (with 8 decimals)
+    /// Basic subscription price: 10 APT per month
+    const BASIC_SUBSCRIPTION_PRICE: u64 = 1000000000; // 10 APT (10 * 1e8)
+    /// Premium subscription price: 50 APT per month
+    const PREMIUM_SUBSCRIPTION_PRICE: u64 = 5000000000; // 50 APT (50 * 1e8)
+    /// Subscription duration in seconds (30 days)
+    const SUBSCRIPTION_DURATION: u64 = 2592000; // 30 * 24 * 60 * 60
+
     // ======================== Data Structures ========================
-    
+
+    // Subscription tier constants
+    /// Free tier: 0
+    const SUBSCRIPTION_TIER_FREE: u8 = 0;
+    /// Basic tier: 1
+    const SUBSCRIPTION_TIER_BASIC: u8 = 1;
+    /// Premium tier: 2
+    const SUBSCRIPTION_TIER_PREMIUM: u8 = 2;
+
+    /// User subscription information
+    struct UserSubscription has store, copy, drop {
+        tier: u8, // 0: Free, 1: Basic, 2: Premium
+        expires_at: u64, // Timestamp when subscription expires (0 for free users)
+        auto_renew: bool, // Whether to auto-renew subscription
+    }
+
+    /// Global subscription treasury to collect APT payments
+    struct SubscriptionTreasury has key {
+        total_revenue: u64, // Total APT collected
+        active_subscriptions: u64, // Number of active paid subscriptions
+    }
+
     /// Represents a trading bot with its configuration and state
-    /// Stored as a resource in the blockchain, with `key` (addressable) and `store` (storable) abilities
-    struct TradingBot has key, store {
+    /// Stored as a resource in the blockchain, with `store`, `copy`, and `drop` abilities
+    struct TradingBot has store, copy, drop {
         owner: address, // Address of the bot's owner
         bot_id: u64, // Unique identifier for the bot
         name: String, // Human-readable name of the bot
@@ -61,6 +92,14 @@ module trading_bot_addr::trading_bot {
         daily_trades_reset_at: u64, // Timestamp when daily trade count resets
         risk_settings: RiskSettings, // Risk management configuration
         trade_history: vector<TradeRecord>, // History of all trades executed
+    }
+
+    /// Collection of bots owned by a single user
+    /// Allows multiple bots per address
+    struct UserBots has key {
+        bots: vector<TradingBot>, // Vector of bots owned by this user
+        bot_count: u64, // Number of bots owned by this user
+        subscription: UserSubscription, // User's subscription information
     }
 
     /// Risk management settings for a trading bot
@@ -129,12 +168,26 @@ module trading_bot_addr::trading_bot {
         total_trades: u64, // Updated total trade count
     }
 
+    struct SubscriptionPurchasedEvent has drop, store {
+        user: address, // User who purchased subscription
+        tier: u8, // Subscription tier (1: Basic, 2: Premium)
+        amount_paid: u64, // Amount paid in APT
+        expires_at: u64, // When subscription expires
+    }
+
+    struct SubscriptionExpiredEvent has drop, store {
+        user: address, // User whose subscription expired
+        previous_tier: u8, // Previous subscription tier
+    }
+
     /// Stores event handles for emitting bot-related events
     /// Stored as a resource with `key` ability
     struct TradingBotEvents has key {
         bot_created_events: EventHandle<BotCreatedEvent>, // Handle for bot creation events
         trade_executed_events: EventHandle<TradeExecutedEvent>, // Handle for trade execution events
         performance_updated_events: EventHandle<BotPerformanceUpdatedEvent>, // Handle for performance updates
+        subscription_purchased_events: EventHandle<SubscriptionPurchasedEvent>, // Handle for subscription purchases
+        subscription_expired_events: EventHandle<SubscriptionExpiredEvent>, // Handle for subscription expirations
     }
 
     // ======================== Module Initialization ========================
@@ -150,12 +203,120 @@ module trading_bot_addr::trading_bot {
             bot_creators: vector::empty(), // No creators yet
         });
 
+        // Initialize subscription treasury
+        move_to(sender, SubscriptionTreasury {
+            total_revenue: 0, // No revenue yet
+            active_subscriptions: 0, // No active subscriptions
+        });
+
         // Initialize event handles for emitting events
         move_to(sender, TradingBotEvents {
             bot_created_events: account::new_event_handle<BotCreatedEvent>(sender),
             trade_executed_events: account::new_event_handle<TradeExecutedEvent>(sender),
             performance_updated_events: account::new_event_handle<BotPerformanceUpdatedEvent>(sender),
+            subscription_purchased_events: account::new_event_handle<SubscriptionPurchasedEvent>(sender),
+            subscription_expired_events: account::new_event_handle<SubscriptionExpiredEvent>(sender),
         });
+    }
+
+    // ======================== Subscription Management Functions ========================
+
+    /// Purchase a subscription tier (Basic or Premium) with APT
+    public entry fun purchase_subscription(
+        sender: &signer,
+        tier: u8, // 1: Basic, 2: Premium
+    ) acquires SubscriptionTreasury, TradingBotEvents, UserBots {
+        use aptos_framework::coin;
+        use aptos_framework::aptos_coin::AptosCoin;
+
+        let sender_addr = signer::address_of(sender);
+
+        // Validate tier
+        assert!(tier == 1 || tier == 2, EINVALID_TRADE_PARAMS);
+
+        // Get subscription price based on tier
+        let price = if (tier == 1) {
+            BASIC_SUBSCRIPTION_PRICE
+        } else {
+            PREMIUM_SUBSCRIPTION_PRICE
+        };
+
+        // Check if user has sufficient APT balance
+        assert!(coin::balance<AptosCoin>(sender_addr) >= price, EINSUFFICIENT_BALANCE);
+
+        // Transfer APT to contract treasury
+        let payment = coin::withdraw<AptosCoin>(sender, price);
+        coin::deposit<AptosCoin>(@trading_bot_addr, payment);
+
+        // Calculate expiration time
+        let current_time = timestamp::now_seconds();
+        let expires_at = current_time + SUBSCRIPTION_DURATION;
+
+        // Update or create user subscription
+        if (exists<UserBots>(sender_addr)) {
+            let user_bots = borrow_global_mut<UserBots>(sender_addr);
+            user_bots.subscription = UserSubscription {
+                tier,
+                expires_at,
+                auto_renew: false,
+            };
+        } else {
+            // Create new UserBots with subscription for users who haven't created bots yet
+            let user_bots = UserBots {
+                bots: vector::empty(),
+                bot_count: 0,
+                subscription: UserSubscription {
+                    tier,
+                    expires_at,
+                    auto_renew: false,
+                },
+            };
+            move_to(sender, user_bots);
+        };
+
+        // Update treasury
+        let treasury = borrow_global_mut<SubscriptionTreasury>(@trading_bot_addr);
+        treasury.total_revenue = treasury.total_revenue + price;
+        treasury.active_subscriptions = treasury.active_subscriptions + 1;
+
+        // Emit subscription purchased event
+        let events = borrow_global_mut<TradingBotEvents>(@trading_bot_addr);
+        event::emit_event(&mut events.subscription_purchased_events, SubscriptionPurchasedEvent {
+            user: sender_addr,
+            tier,
+            amount_paid: price,
+            expires_at,
+        });
+    }
+
+    /// Get user's current subscription status
+    fun get_user_subscription_tier(user_addr: address): u8 acquires UserBots {
+        if (!exists<UserBots>(user_addr)) {
+            return 0 // Free tier
+        };
+
+        let user_bots = borrow_global<UserBots>(user_addr);
+        let current_time = timestamp::now_seconds();
+
+        // Check if subscription has expired
+        if (user_bots.subscription.expires_at > 0 && current_time > user_bots.subscription.expires_at) {
+            return 0 // Expired, back to free tier
+        };
+
+        user_bots.subscription.tier
+    }
+
+    /// Get maximum bot limit based on user's subscription tier
+    fun get_user_bot_limit(user_addr: address): u64 acquires UserBots {
+        let tier = get_user_subscription_tier(user_addr);
+
+        if (tier == 0) {
+            FREE_USER_MAX_BOTS // Free tier: 10 bots
+        } else if (tier == 1) {
+            BASIC_USER_MAX_BOTS // Basic tier: 100 bots
+        } else {
+            18446744073709551615 // Premium tier: unlimited (max u64)
+        }
     }
 
     // ======================== Bot Management Functions ========================
@@ -172,7 +333,7 @@ public entry fun create_bot(
     stop_loss_percent: u8, // Stop loss percentage
     max_trades_per_day: u8, // Max daily trades
     max_daily_loss: u64, // Max daily loss limit
-) acquires TradingBotRegistry, TradingBotEvents {
+) acquires TradingBotRegistry, TradingBotEvents, UserBots {
     let sender_addr = signer::address_of(sender); // Get the caller's address
     
     // Validate input parameters to ensure correctness
@@ -181,6 +342,13 @@ public entry fun create_bot(
     assert!(initial_balance >= MIN_BOT_BALANCE, EINSUFFICIENT_BALANCE); // Ensure minimum balance
     assert!(stop_loss_percent <= 100, EINVALID_TRADE_PARAMS); // Stop loss must be 0-100%
     assert!(max_trades_per_day <= MAX_DAILY_TRADES, EINVALID_TRADE_PARAMS); // Respect max daily trades limit
+
+    // Check if user already has bots, and enforce subscription-based limit
+    let user_bot_limit = get_user_bot_limit(sender_addr);
+    if (exists<UserBots>(sender_addr)) {
+        let user_bots = borrow_global<UserBots>(sender_addr);
+        assert!(user_bots.bot_count < user_bot_limit, ERISK_LIMIT_EXCEEDED);
+    };
 
     // Access the global registry to assign a new bot ID
     let registry = borrow_global_mut<TradingBotRegistry>(@trading_bot_addr);
@@ -213,12 +381,31 @@ public entry fun create_bot(
         trade_history: vector::empty(), // Empty trade history
     };
 
-    // Store the bot at the sender's address
-    move_to(sender, bot);
+    // Add bot to user's collection or create new collection
+    if (exists<UserBots>(sender_addr)) {
+        let user_bots = borrow_global_mut<UserBots>(sender_addr);
+        vector::push_back(&mut user_bots.bots, bot);
+        user_bots.bot_count = user_bots.bot_count + 1;
+    } else {
+        // Create new UserBots resource for first-time bot creators with free subscription
+        let user_bots = UserBots {
+            bots: vector::empty(),
+            bot_count: 1,
+            subscription: UserSubscription {
+                tier: 0, // Free tier
+                expires_at: 0, // No expiration for free tier
+                auto_renew: false,
+            },
+        };
+        vector::push_back(&mut user_bots.bots, bot);
+        move_to(sender, user_bots);
+    };
 
     // Update the global registry
     registry.total_bots = bot_id; // Increment total bots
-    vector::push_back(&mut registry.bot_creators, sender_addr); // Record creator
+    if (!vector::contains(&registry.bot_creators, &sender_addr)) {
+        vector::push_back(&mut registry.bot_creators, sender_addr); // Record creator only once
+    };
 
     // Emit a bot creation event for transparency (using the copied name)
     let events = borrow_global_mut<TradingBotEvents>(@trading_bot_addr);
@@ -235,10 +422,11 @@ public entry fun create_bot(
     /// Validates risk limits and updates bot state
     public entry fun execute_trade(
         sender: &signer,
+        bot_id: u64, // ID of the bot to execute trade for
         trade_type: u8, // 0 for buy, 1 for sell
         amount: u64, // Trade amount
         price: u64, // Trade price
-    ) acquires TradingBot, TradingBotRegistry, TradingBotEvents {
+    ) acquires UserBots, TradingBotRegistry, TradingBotEvents {
         let sender_addr = signer::address_of(sender); // Get the caller's address
         
         // Validate trade parameters
@@ -246,9 +434,27 @@ public entry fun create_bot(
         assert!(amount > 0, EINVALID_TRADE_PARAMS); // Amount must be positive
         assert!(price > 0, EINVALID_TRADE_PARAMS); // Price must be positive
 
-        // Access the bot's state at the sender's address
-        assert!(exists<TradingBot>(sender_addr), EBOT_NOT_FOUND);
-        let bot = borrow_global_mut<TradingBot>(sender_addr);
+        // Access the user's bots collection
+        assert!(exists<UserBots>(sender_addr), EBOT_NOT_FOUND);
+        let user_bots = borrow_global_mut<UserBots>(sender_addr);
+        
+        // Find the bot with the specified ID
+        let bot_index = 0;
+        let bot_found = false;
+        let bots_len = vector::length(&user_bots.bots);
+        
+        while (bot_index < bots_len) {
+            let bot = vector::borrow(&user_bots.bots, bot_index);
+            if (bot.bot_id == bot_id) {
+                bot_found = true;
+                break
+            };
+            bot_index = bot_index + 1;
+        };
+        
+        assert!(bot_found, EBOT_NOT_FOUND); // Bot with specified ID not found
+        
+        let bot = vector::borrow_mut(&mut user_bots.bots, bot_index);
         
         // Verify bot status
         assert!(bot.active, EBOT_NOT_ACTIVE); // Bot must be active
@@ -380,34 +586,73 @@ public entry fun create_bot(
     // ======================== View Functions ========================
 
     #[view]
-    /// Retrieves core information about a bot
+    /// Retrieves core information about a specific bot
     /// View function for querying bot state without modification
-    public fun get_bot(bot_owner: address): (address, String, String, u64, u64, u64, bool, u64, u64) acquires TradingBot {
-        let bot = borrow_global<TradingBot>(bot_owner); // Access bot state
-        (
-            bot.owner,
-            bot.name,
-            bot.strategy,
-            bot.balance,
-            bot.performance,
-            bot.total_loss,
-            bot.active,
-            bot.total_trades,
-            bot.created_at,
-        )
+    public fun get_bot(bot_owner: address, bot_id: u64): (address, String, String, u64, u64, u64, bool, u64, u64) acquires UserBots {
+        assert!(exists<UserBots>(bot_owner), EBOT_NOT_FOUND);
+        let user_bots = borrow_global<UserBots>(bot_owner);
+        
+        // Find the bot with the specified ID
+        let bot_index = 0;
+        let bots_len = vector::length(&user_bots.bots);
+        
+        while (bot_index < bots_len) {
+            let bot = vector::borrow(&user_bots.bots, bot_index);
+            if (bot.bot_id == bot_id) {
+                return (
+                    bot.owner,
+                    bot.name,
+                    bot.strategy,
+                    bot.balance,
+                    bot.performance,
+                    bot.total_loss,
+                    bot.active,
+                    bot.total_trades,
+                    bot.created_at,
+                )
+            };
+            bot_index = bot_index + 1;
+        };
+        
+        abort EBOT_NOT_FOUND // Bot with specified ID not found
+    }
+
+    #[view]
+    /// Retrieves all bots owned by a user
+    public fun get_user_bots(user_addr: address): vector<TradingBot> acquires UserBots {
+        if (exists<UserBots>(user_addr)) {
+            let user_bots = borrow_global<UserBots>(user_addr);
+            user_bots.bots
+        } else {
+            vector::empty<TradingBot>()
+        }
     }
 
     #[view]
     /// Retrieves a bot's risk settings
-    public fun get_bot_risk_settings(bot_owner: address): (u64, u8, u8, u64) acquires TradingBot {
-        let bot = borrow_global<TradingBot>(bot_owner); // Access bot state
-        let settings = &bot.risk_settings;
-        (
-            settings.max_position_size,
-            settings.stop_loss_percent,
-            settings.max_trades_per_day,
-            settings.max_daily_loss
-        )
+    public fun get_bot_risk_settings(bot_owner: address, bot_id: u64): (u64, u8, u8, u64) acquires UserBots {
+        assert!(exists<UserBots>(bot_owner), EBOT_NOT_FOUND);
+        let user_bots = borrow_global<UserBots>(bot_owner);
+        
+        // Find the bot with the specified ID
+        let bot_index = 0;
+        let bots_len = vector::length(&user_bots.bots);
+        
+        while (bot_index < bots_len) {
+            let bot = vector::borrow(&user_bots.bots, bot_index);
+            if (bot.bot_id == bot_id) {
+                let settings = &bot.risk_settings;
+                return (
+                    settings.max_position_size,
+                    settings.stop_loss_percent,
+                    settings.max_trades_per_day,
+                    settings.max_daily_loss
+                )
+            };
+            bot_index = bot_index + 1;
+        };
+        
+        abort EBOT_NOT_FOUND // Bot with specified ID not found
     }
 
     #[view]
@@ -425,9 +670,60 @@ public entry fun create_bot(
     }
 
     #[view]
-    /// Check if a user has a bot
+    /// Check if a user has any bots
     public fun has_bot(user_addr: address): bool {
-        exists<TradingBot>(user_addr)
+        exists<UserBots>(user_addr)
+    }
+
+    #[view]
+    /// Get the number of bots a user has
+    public fun get_user_bot_count(user_addr: address): u64 acquires UserBots {
+        if (exists<UserBots>(user_addr)) {
+            let user_bots = borrow_global<UserBots>(user_addr);
+            user_bots.bot_count
+        } else {
+            0
+        }
+    }
+
+    #[view]
+    /// Get user's subscription information
+    public fun get_user_subscription(user_addr: address): (u8, u64, bool) acquires UserBots {
+        if (exists<UserBots>(user_addr)) {
+            let user_bots = borrow_global<UserBots>(user_addr);
+            (
+                user_bots.subscription.tier,
+                user_bots.subscription.expires_at,
+                user_bots.subscription.auto_renew
+            )
+        } else {
+            (0, 0, false) // Free tier defaults
+        }
+    }
+
+    #[view]
+    /// Get user's current subscription tier (considering expiration)
+    public fun get_current_subscription_tier(user_addr: address): u8 acquires UserBots {
+        get_user_subscription_tier(user_addr)
+    }
+
+    #[view]
+    /// Get user's bot creation limit based on subscription
+    public fun get_user_max_bots(user_addr: address): u64 acquires UserBots {
+        get_user_bot_limit(user_addr)
+    }
+
+    #[view]
+    /// Get subscription prices
+    public fun get_subscription_prices(): (u64, u64) {
+        (BASIC_SUBSCRIPTION_PRICE, PREMIUM_SUBSCRIPTION_PRICE)
+    }
+
+    #[view]
+    /// Get treasury statistics
+    public fun get_treasury_stats(): (u64, u64) acquires SubscriptionTreasury {
+        let treasury = borrow_global<SubscriptionTreasury>(@trading_bot_addr);
+        (treasury.total_revenue, treasury.active_subscriptions)
     }
 
     // ======================== Test Functions ========================
@@ -445,7 +741,7 @@ public entry fun create_bot(
         name: String,
         strategy: String,
         initial_balance: u64,
-    ) acquires TradingBotRegistry, TradingBotEvents {
+    ) acquires TradingBotRegistry, TradingBotEvents, UserBots {
         // Create a bot with default risk settings for testing
         create_bot(sender, name, strategy, initial_balance, 1000000, 10, 20, 500000);
     }

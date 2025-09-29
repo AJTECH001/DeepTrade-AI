@@ -6,8 +6,13 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { useCreateBot, useHasBot } from "@/hooks/useContract";
-import { CreateBotParams } from "@/types/contract";
+import {
+  useCreateBot,
+  useUserMaxBots,
+  useUserBotCount,
+  useCurrentSubscriptionTier
+} from "@/hooks/useContract";
+import { CreateBotParams, SubscriptionTier } from "@/types/contract";
 import { MODULE_ADDRESS } from "@/constants";
 
 export function TradingBotCreator() {
@@ -21,7 +26,14 @@ export function TradingBotCreator() {
   const [maxDailyLoss, setMaxDailyLoss] = useState(100000); // 0.1 USDC
 
   const createBotMutation = useCreateBot();
-  const { data: hasExistingBot } = useHasBot(account?.address?.toString());
+  const { data: maxBots } = useUserMaxBots(account?.address?.toString());
+  const { data: botCount } = useUserBotCount(account?.address?.toString());
+  const { data: currentTier } = useCurrentSubscriptionTier(account?.address?.toString());
+
+  // Fallback to free tier defaults if functions fail
+  const safeMaxBots = maxBots || 10; // Default to 10 for free tier
+  const safeBotCount = botCount || 0;
+  const safeTier = currentTier || SubscriptionTier.FREE;
 
   const isFormValid = botName.trim() && strategy.trim() && initialBalance >= 1000000;
 
@@ -111,70 +123,129 @@ export function TradingBotCreator() {
     );
   }
 
-  if (hasExistingBot) {
+  // Debug: Log the values
+  console.log("Debug TradingBotCreator:", { botCount, maxBots, currentTier, safeMaxBots, safeBotCount });
+
+  // Check if user has reached their bot limit using safe values
+  // Convert to numbers to ensure proper comparison
+  const numBotCount = Number(safeBotCount);
+  const numMaxBots = Number(safeMaxBots);
+  const isAtBotLimit = numBotCount >= numMaxBots;
+
+  if (isAtBotLimit) {
+    const getTierName = (tier: SubscriptionTier) => {
+      switch (tier) {
+        case SubscriptionTier.FREE: return "Free";
+        case SubscriptionTier.BASIC: return "Basic";
+        case SubscriptionTier.PREMIUM: return "Premium";
+        default: return "Free";
+      }
+    };
+
+    const canUpgrade = currentTier !== SubscriptionTier.PREMIUM;
+
     return (
-      <Card>
+      <Card className="bg-[#051419] border-gray-700">
         <CardHeader>
-          <CardTitle>Create Trading Bot</CardTitle>
-          <CardDescription>
-            You already have a trading bot. Each user can only create one bot at a time.
+          <CardTitle className="text-white">Create Trading Bot</CardTitle>
+          <CardDescription className="text-gray-400">
+            You've reached your bot limit for the {getTierName(currentTier || SubscriptionTier.FREE)} plan.
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="p-4 border rounded-lg bg-blue-50 border-blue-200">
-            <h4 className="font-semibold text-blue-800 mb-2">💡 Bot Limit Reached</h4>
-            <p className="text-sm text-blue-700 mb-3">
-              The current contract allows only one bot per user. Your existing bot is already active.
+          <div className="p-4 border rounded-lg bg-yellow-900/30 border-yellow-600">
+            <h4 className="font-semibold text-yellow-300 mb-2">🚀 Bot Limit Reached</h4>
+            <p className="text-sm text-yellow-200 mb-3">
+              You have {safeBotCount} of {safeMaxBots > 1000000 ? "unlimited" : safeMaxBots} bots on the {getTierName(safeTier)} plan.
             </p>
-            <p className="text-xs text-blue-600">
-              Check the "My Trading Bots" section to view and manage your existing bot.
-            </p>
+            {canUpgrade ? (
+              <div className="text-xs text-yellow-100 space-y-2">
+                <p>Upgrade your subscription to create more bots:</p>
+                <ul className="ml-4 space-y-1">
+                  {safeTier === SubscriptionTier.FREE && (
+                    <>
+                      <li>• Basic Plan: 100 bots for 10 APT/month</li>
+                      <li>• Premium Plan: Unlimited bots for 50 APT/month</li>
+                    </>
+                  )}
+                  {safeTier === SubscriptionTier.BASIC && (
+                    <li>• Premium Plan: Unlimited bots for 50 APT/month</li>
+                  )}
+                </ul>
+              </div>
+            ) : (
+              <p className="text-xs text-yellow-100">
+                You're on the Premium plan with unlimited bots. If you're seeing this message, please contact support.
+              </p>
+            )}
           </div>
         </CardContent>
       </Card>
     );
   }
 
+  const getTierName = (tier: SubscriptionTier) => {
+    switch (tier) {
+      case SubscriptionTier.FREE: return "Free";
+      case SubscriptionTier.BASIC: return "Basic";
+      case SubscriptionTier.PREMIUM: return "Premium";
+      default: return "Free";
+    }
+  };
+
   return (
-    <Card>
+    <Card className="bg-[#051419] border-gray-700">
       <CardHeader>
-        <CardTitle>Create Trading Bot</CardTitle>
-        <CardDescription>
-          Create an AI-powered trading bot with custom risk management settings.
-        </CardDescription>
+        <div className="flex items-center justify-between">
+          <div>
+            <CardTitle className="text-white">Create Trading Bot</CardTitle>
+            <CardDescription className="text-gray-400">
+              Create an AI-powered trading bot with custom risk management settings.
+            </CardDescription>
+          </div>
+          <div className="text-right">
+            <div className="text-sm text-gray-300">
+              {safeBotCount} / {safeMaxBots > 1000000 ? "∞" : safeMaxBots} bots
+            </div>
+            <div className="text-xs text-gray-400">
+              {getTierName(safeTier)} Plan
+            </div>
+          </div>
+        </div>
       </CardHeader>
       <CardContent className="space-y-4">
         {/* Bot Name */}
         <div>
-          <Label htmlFor="bot-name">Bot Name</Label>
+          <Label htmlFor="bot-name" className="text-gray-300">Bot Name</Label>
           <Input
             id="bot-name"
             value={botName}
             onChange={(e) => setBotName(e.target.value)}
             placeholder="e.g., Momentum Trader, RSI Scalper, DCA Bot"
+            className="bg-gray-800 border-gray-600 text-white placeholder:text-gray-400"
             required
           />
         </div>
 
         {/* Strategy */}
         <div>
-          <Label htmlFor="strategy">Trading Strategy</Label>
+          <Label htmlFor="strategy" className="text-gray-300">Trading Strategy</Label>
           <textarea
             id="strategy"
             value={strategy}
             onChange={(e) => setStrategy(e.target.value)}
-            className="w-full p-2 border rounded-md min-h-[120px] bg-background text-foreground"
+            className="w-full p-2 border rounded-md min-h-[120px] bg-gray-800 border-gray-600 text-white placeholder:text-gray-400"
             placeholder="Example: Buy when RSI is below 30 and price is above 20-day moving average. Sell when RSI is above 70 or price drops 5% from entry. Use 2% position size per trade with maximum 3 positions at once."
             required
           />
-          <p className="text-xs text-muted-foreground mt-1">
+          <p className="text-xs text-gray-400 mt-1">
             💡 Try: "Buy APT when it drops 5% in 1 hour, sell when it gains 3% or after 24 hours"
           </p>
         </div>
 
         {/* Initial Balance */}
         <div>
-          <Label htmlFor="initial-balance">Initial Balance (USDC)</Label>
+          <Label htmlFor="initial-balance" className="text-gray-300">Initial Balance (USDC)</Label>
           <Input
             id="initial-balance"
             type="number"
@@ -182,16 +253,17 @@ export function TradingBotCreator() {
             onChange={(e) => setInitialBalance(parseFloat(e.target.value) * 1000000 || 1000000)}
             min="1"
             step="0.1"
+            className="bg-gray-800 border-gray-600 text-white"
             required
           />
         </div>
 
         {/* Risk Management Settings */}
         <div className="space-y-4">
-          <h3 className="text-lg font-semibold">Risk Management</h3>
-          
+          <h3 className="text-lg font-semibold text-white">Risk Management</h3>
+
           <div>
-            <Label>Max Position Size: ${(maxPositionSize / 1000000).toFixed(2)} USDC</Label>
+            <Label className="text-gray-300">Max Position Size: ${(maxPositionSize / 1000000).toFixed(2)} USDC</Label>
             <input
               type="range"
               min={50000}
@@ -199,12 +271,12 @@ export function TradingBotCreator() {
               step={10000}
               value={maxPositionSize}
               onChange={(e) => setMaxPositionSize(parseInt(e.target.value))}
-              className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer"
+              className="w-full h-2 bg-gray-600 rounded-lg appearance-none cursor-pointer"
             />
           </div>
 
           <div>
-            <Label>Stop Loss: {stopLossPercent}%</Label>
+            <Label className="text-gray-300">Stop Loss: {stopLossPercent}%</Label>
             <input
               type="range"
               min={1}
@@ -212,12 +284,12 @@ export function TradingBotCreator() {
               step={1}
               value={stopLossPercent}
               onChange={(e) => setStopLossPercent(parseInt(e.target.value))}
-              className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer"
+              className="w-full h-2 bg-gray-600 rounded-lg appearance-none cursor-pointer"
             />
           </div>
 
           <div>
-            <Label>Max Trades Per Day: {maxTradesPerDay}</Label>
+            <Label className="text-gray-300">Max Trades Per Day: {maxTradesPerDay}</Label>
             <input
               type="range"
               min={1}
@@ -225,7 +297,7 @@ export function TradingBotCreator() {
               step={1}
               value={maxTradesPerDay}
               onChange={(e) => setMaxTradesPerDay(parseInt(e.target.value))}
-              className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer"
+              className="w-full h-2 bg-gray-600 rounded-lg appearance-none cursor-pointer"
             />
           </div>
         </div>

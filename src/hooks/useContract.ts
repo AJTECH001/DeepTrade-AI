@@ -1,8 +1,23 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useWallet } from "@aptos-labs/wallet-adapter-react";
 import { contractService } from "@/services/contractService";
-import { CreateBotParams } from "@/types/contract";
+import { CreateBotParams, PurchaseSubscriptionParams, SubscriptionTier } from "@/types/contract";
 import { useToast } from "@/components/ui/use-toast";
+
+export function useUserBots(userAddress?: string) {
+  return useQuery({
+    queryKey: ["userBots", userAddress],
+    queryFn: async () => {
+      const result = await contractService.getUserBots(userAddress!);
+      console.log("User bots query result:", result);
+      return result;
+    },
+    enabled: !!userAddress,
+    refetchInterval: 30000, // Refetch every 30 seconds
+    select: (data) => data.success ? data.data : [],
+    retry: 3,
+  });
+}
 
 export function useUserBot(userAddress?: string) {
   return useQuery({
@@ -136,6 +151,142 @@ export function useCreateBot() {
       } else {
         toast({
           title: "Failed to create bot",
+          description: errorMessage,
+          variant: "destructive",
+        });
+      }
+    },
+  });
+}
+
+// Subscription hooks
+export function useUserSubscription(userAddress?: string) {
+  return useQuery({
+    queryKey: ["userSubscription", userAddress],
+    queryFn: async () => {
+      const result = await contractService.getUserSubscription(userAddress!);
+      return result;
+    },
+    enabled: !!userAddress,
+    refetchInterval: 60000, // Refetch every minute
+    select: (data) => data.success ? data.data : undefined,
+  });
+}
+
+export function useCurrentSubscriptionTier(userAddress?: string) {
+  return useQuery({
+    queryKey: ["currentSubscriptionTier", userAddress],
+    queryFn: async () => {
+      const result = await contractService.getCurrentSubscriptionTier(userAddress!);
+      return result;
+    },
+    enabled: !!userAddress,
+    refetchInterval: 60000,
+    select: (data) => data.success ? data.data : SubscriptionTier.FREE,
+  });
+}
+
+export function useUserMaxBots(userAddress?: string) {
+  return useQuery({
+    queryKey: ["userMaxBots", userAddress],
+    queryFn: async () => {
+      const result = await contractService.getUserMaxBots(userAddress!);
+      return result;
+    },
+    enabled: !!userAddress,
+    refetchInterval: 60000,
+    select: (data) => data.success ? data.data : 10, // Default to free tier limit
+  });
+}
+
+export function useUserBotCount(userAddress?: string) {
+  return useQuery({
+    queryKey: ["userBotCount", userAddress],
+    queryFn: async () => {
+      const result = await contractService.getUserBotCount(userAddress!);
+      return result;
+    },
+    enabled: !!userAddress,
+    refetchInterval: 30000,
+    select: (data) => data.success ? data.data : 0,
+  });
+}
+
+export function useSubscriptionPrices() {
+  return useQuery({
+    queryKey: ["subscriptionPrices"],
+    queryFn: async () => {
+      const result = await contractService.getSubscriptionPrices();
+      return result;
+    },
+    refetchInterval: 300000, // Refetch every 5 minutes
+    select: (data) => data.success ? data.data : undefined,
+  });
+}
+
+export function usePurchaseSubscription() {
+  const { signAndSubmitTransaction, account } = useWallet();
+  const queryClient = useQueryClient();
+  const { toast } = useToast();
+
+  return useMutation({
+    mutationFn: async (params: PurchaseSubscriptionParams) => {
+      if (!signAndSubmitTransaction) {
+        throw new Error("Wallet not connected");
+      }
+      if (!account?.address) {
+        throw new Error("No wallet address available");
+      }
+
+      console.log("Purchasing subscription with params:", params);
+      console.log("Wallet address:", account.address);
+
+      const result = await contractService.purchaseSubscription(params, signAndSubmitTransaction);
+      console.log("Subscription purchase result:", result);
+      return result;
+    },
+    onSuccess: (data, variables) => {
+      console.log("Subscription purchase successful:", data);
+
+      const tierName = variables.tier === SubscriptionTier.BASIC ? "Basic" : "Premium";
+      toast({
+        title: "Subscription purchased successfully! 🎉",
+        description: `You've upgraded to ${tierName} subscription. Enjoy increased bot limits!`,
+      });
+
+      // Invalidate subscription-related queries
+      const userAddress = account?.address?.toString();
+      queryClient.invalidateQueries({ queryKey: ["userSubscription", userAddress] });
+      queryClient.invalidateQueries({ queryKey: ["currentSubscriptionTier", userAddress] });
+      queryClient.invalidateQueries({ queryKey: ["userMaxBots", userAddress] });
+      queryClient.invalidateQueries({ queryKey: ["userBotCount", userAddress] });
+
+      // Force refetch after delay
+      setTimeout(() => {
+        queryClient.refetchQueries({ queryKey: ["userSubscription", userAddress] });
+        queryClient.refetchQueries({ queryKey: ["currentSubscriptionTier", userAddress] });
+        queryClient.refetchQueries({ queryKey: ["userMaxBots", userAddress] });
+      }, 3000);
+
+      if (data && !data.success) {
+        throw new Error(data.error || "Failed to purchase subscription");
+      }
+    },
+    onError: (error) => {
+      console.error("Purchase subscription error:", error);
+
+      const errorMessage = error instanceof Error ? error.message : "An error occurred";
+      const isInsufficientAPT = errorMessage.includes("insufficient") || errorMessage.includes("balance");
+
+      if (isInsufficientAPT) {
+        toast({
+          title: "Insufficient APT balance",
+          description: "You need more APT tokens to purchase this subscription. Please add APT to your wallet.",
+          variant: "destructive",
+        });
+      } else {
+        toast({
+          title: "Failed to purchase subscription",
           description: errorMessage,
           variant: "destructive",
         });

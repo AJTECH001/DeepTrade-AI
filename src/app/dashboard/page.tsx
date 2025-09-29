@@ -7,6 +7,7 @@ import { TradingOperations } from "@/components/TradingOperations";
 import { CrossChainOperations } from "@/components/CrossChainOperations";
 import { DashboardLayout } from "@/components/DashboardLayout";
 import { DashboardStats } from "@/components/DashboardStats";
+import { SubscriptionStatus } from "@/components/SubscriptionStatus";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { useWallet } from "@aptos-labs/wallet-adapter-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -62,6 +63,14 @@ export default function DashboardPage() {
               Chart visualization coming soon...
             </div>
           </div>
+        </div>
+      </div>
+
+      {/* Subscription Status and Quick Actions */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
+        <SubscriptionStatus />
+        <div className="lg:col-span-2">
+          {/* Quick action cards can go here */}
         </div>
       </div>
 

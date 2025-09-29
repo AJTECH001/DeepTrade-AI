@@ -1,5 +1,6 @@
 import { Network } from "@aptos-labs/ts-sdk";
 import { NetworkInfo, isAptosNetwork } from "@aptos-labs/wallet-adapter-react";
+import { type ClassValue, clsx } from "clsx";
 
 export const isValidNetworkName = (network: NetworkInfo | null) => {
   if (isAptosNetwork(network)) {
@@ -14,3 +15,7 @@ export const formatAddress = (address: string): string => {
   if (!address) return "";
   return `${address.slice(0, 6)}...${address.slice(-4)}`;
 };
+
+export function cn(...inputs: ClassValue[]) {
+  return clsx(inputs);
+}

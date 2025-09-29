@@ -8,7 +8,7 @@ async function compile() {
     packageDirectoryPath: "contract",
     namedAddresses: {
       // Compile module with account address
-      message_board_addr: process.env.NEXT_MODULE_PUBLISHER_ACCOUNT_ADDRESS,
+      trading_bot_addr: process.env.NEXT_MODULE_PUBLISHER_ACCOUNT_ADDRESS || "0x64b0d0c590ac866988e39442f4bb7dc69f9ee956d9b45ed3128f751f2e430c1a",
     },
   });
 }

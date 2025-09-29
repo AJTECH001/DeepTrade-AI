@@ -2,7 +2,7 @@
 import { useWallet } from "@aptos-labs/wallet-adapter-react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { useUserBot } from "@/hooks/useContract";
+import { useUserBots } from "@/hooks/useContract";
 import { BotPerformanceCard } from "@/components/ui/BotPerformanceCard";
 import { LoadingSkeleton } from "@/components/ui/LoadingSkeleton";
 
@@ -11,8 +11,8 @@ export function UserBots() {
   const userAddress = account?.address?.toString();
 
   console.log("UserBots component - userAddress:", userAddress);
-  const { data: userBot, isLoading, error, refetch } = useUserBot(userAddress);
-  console.log("UserBots component - userBot:", userBot, "isLoading:", isLoading, "error:", error);
+  const { data: userBots, isLoading, error, refetch } = useUserBots(userAddress);
+  console.log("UserBots component - userBots:", userBots, "isLoading:", isLoading, "error:", error);
 
   if (!account?.address) {
     return (
@@ -71,7 +71,7 @@ export function UserBots() {
     );
   }
 
-  if (!userBot) {
+  if (!userBots || userBots.length === 0) {
     return (
       <Card>
         <CardHeader>
@@ -90,7 +90,7 @@ export function UserBots() {
               <p className="text-xs text-gray-500">User Address: {userAddress}</p>
               <p className="text-xs text-gray-500">Loading: {isLoading ? 'Yes' : 'No'}</p>
               <p className="text-xs text-gray-500">Error: {error ? 'Yes' : 'No'}</p>
-              <p className="text-xs text-gray-500">Bot Data: {userBot ? 'Found' : 'None'}</p>
+              <p className="text-xs text-gray-500">Bot Data: {userBots && userBots.length > 0 ? `Found ${userBots.length}` : 'None'}</p>
               <Button 
                 onClick={() => {
                   console.log("Manual refetch triggered");
@@ -113,45 +113,52 @@ export function UserBots() {
     <div className="space-y-4">
       <Card>
         <CardHeader>
-          <CardTitle>My Trading Bot</CardTitle>
+          <CardTitle>My Trading Bots ({userBots.length})</CardTitle>
           <CardDescription>
-            Manage your AI-powered trading bot and monitor its performance.
+            Manage your AI-powered trading bots and monitor their performance.
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
-          <BotPerformanceCard 
-            bot={userBot}
-            onViewDetails={(botId) => {
-              console.log('View details for bot:', botId);
-              // TODO: Implement bot details modal
-            }}
-            onToggleStatus={(botId, currentStatus) => {
-              console.log('Toggle status for bot:', botId, currentStatus);
-              // TODO: Implement bot status toggle
-            }}
-          />
-          
-          {/* Bot Stats Summary */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 pt-4 border-t">
-            <div className="text-center">
-              <h4 className="text-sm font-medium text-gray-500">Total Trades</h4>
-              <p className="text-2xl font-bold text-white">{userBot.total_trades}</p>
+          {userBots.map((bot, index) => (
+            <div key={`${bot.owner}-${index}`} className="space-y-4">
+              <BotPerformanceCard
+                bot={bot}
+                onViewDetails={(botId) => {
+                  console.log('View details for bot:', botId);
+                  // TODO: Implement bot details modal
+                }}
+                onToggleStatus={(botId, currentStatus) => {
+                  console.log('Toggle status for bot:', botId, currentStatus);
+                  // TODO: Implement bot status toggle
+                }}
+              />
+
+              {/* Bot Stats Summary */}
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 pt-4 border-t">
+                <div className="text-center">
+                  <h4 className="text-sm font-medium text-gray-500">Total Trades</h4>
+                  <p className="text-2xl font-bold text-white">{bot.total_trades}</p>
+                </div>
+                <div className="text-center">
+                  <h4 className="text-sm font-medium text-gray-500">Win Rate</h4>
+                  <p className="text-2xl font-bold text-green-500">
+                    {bot.total_trades > 0
+                      ? Math.round((bot.performance / (bot.performance + bot.total_loss)) * 100)
+                      : 0}%
+                  </p>
+                </div>
+                <div className="text-center">
+                  <h4 className="text-sm font-medium text-gray-500">Status</h4>
+                  <p className={`text-2xl font-bold ${bot.active ? 'text-green-500' : 'text-red-500'}`}>
+                    {bot.active ? 'Active' : 'Inactive'}
+                  </p>
+                </div>
+              </div>
+
+              {/* Separator between bots */}
+              {index < userBots.length - 1 && <hr className="border-gray-700" />}
             </div>
-            <div className="text-center">
-              <h4 className="text-sm font-medium text-gray-500">Win Rate</h4>
-              <p className="text-2xl font-bold text-green-500">
-                {userBot.total_trades > 0 
-                  ? Math.round((userBot.performance / (userBot.performance + userBot.total_loss)) * 100)
-                  : 0}%
-              </p>
-            </div>
-            <div className="text-center">
-              <h4 className="text-sm font-medium text-gray-500">Status</h4>
-              <p className={`text-2xl font-bold ${userBot.active ? 'text-green-500' : 'text-red-500'}`}>
-                {userBot.active ? 'Active' : 'Inactive'}
-              </p>
-            </div>
-          </div>
+          ))}
         </CardContent>
       </Card>
     </div>

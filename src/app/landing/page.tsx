@@ -150,12 +150,12 @@ export default function LandingPage() {
                             <CardContent className="p-6">
                                 <div className="h-12 w-12 rounded-full bg-blue-900/30 flex items-center justify-center mb-4">
                                     <svg className="w-6 h-6 text-[#00d2cee6]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5h12M9 3v2m1.048 9.5A18.022 18.022 0 016.412 9m6.088 9h7M11 21l5-10 5 10M12.751 5C11.783 10.77 8.07 15.61 3 18.129" />
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
                                     </svg>
                                 </div>
-                                <h3 className="text-lg font-medium mb-2">Natural Language Strategy</h3>
+                                <h3 className="text-lg font-medium mb-2">Scalable Bot Creation</h3>
                                 <p className="text-neutral-400">
-                                    Create complex trading strategies using plain English. Our AI converts your words into executable trading logic.
+                                    Start with 10 free bots, scale to 100 with Basic subscription (10 APT/month), or go unlimited with Premium (50 APT/month).
                                 </p>
                             </CardContent>
                         </Card>
@@ -229,6 +229,172 @@ export default function LandingPage() {
                                 </p>
                             </CardContent>
                         </Card>
+                    </div>
+                </div>
+
+                {/* Subscription Plans Section */}
+                <div className="mb-12">
+                    <div className="text-center mb-8">
+                        <h2 className="text-3xl font-bold mb-4">Choose Your Bot Limit</h2>
+                        <p className="text-neutral-400 text-lg">Scale your trading operations with flexible subscription plans</p>
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                        {/* Free Plan */}
+                        <Card className="bg-[#051419] border border-neutral-700 transform hover:scale-[1.02] transition-all duration-300 relative">
+                            <CardContent className="p-8">
+                                <div className="text-center">
+                                    <h3 className="text-xl font-bold text-white mb-2">Free</h3>
+                                    <div className="mb-4">
+                                        <span className="text-3xl font-bold text-[#00d2cee6]">$0</span>
+                                        <span className="text-neutral-400">/month</span>
+                                    </div>
+                                    <div className="mb-6">
+                                        <span className="text-2xl font-bold text-white">10</span>
+                                        <span className="text-neutral-400 block">trading bots</span>
+                                    </div>
+                                    <ul className="text-left space-y-3 mb-8">
+                                        <li className="flex items-center text-neutral-300">
+                                            <svg className="w-5 h-5 text-green-500 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                                            </svg>
+                                            Natural language strategies
+                                        </li>
+                                        <li className="flex items-center text-neutral-300">
+                                            <svg className="w-5 h-5 text-green-500 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                                            </svg>
+                                            Gas-free trading
+                                        </li>
+                                        <li className="flex items-center text-neutral-300">
+                                            <svg className="w-5 h-5 text-green-500 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                                            </svg>
+                                            Basic analytics
+                                        </li>
+                                    </ul>
+                                    <Button
+                                        onClick={() => router.push('/dashboard')}
+                                        variant="outline"
+                                        className="w-full border-neutral-600 hover:bg-neutral-700"
+                                    >
+                                        Get Started Free
+                                    </Button>
+                                </div>
+                            </CardContent>
+                        </Card>
+
+                        {/* Basic Plan */}
+                        <Card className="bg-[#051419] border-2 border-[#00d2cee6] transform hover:scale-[1.02] transition-all duration-300 relative">
+                            <div className="absolute top-0 left-1/2 transform -translate-x-1/2 -translate-y-1/2">
+                                <span className="bg-[#00d2cee6] text-black px-4 py-1 rounded-full text-sm font-medium">
+                                    Most Popular
+                                </span>
+                            </div>
+                            <CardContent className="p-8">
+                                <div className="text-center">
+                                    <h3 className="text-xl font-bold text-white mb-2">Basic</h3>
+                                    <div className="mb-4">
+                                        <span className="text-3xl font-bold text-[#00d2cee6]">10 APT</span>
+                                        <span className="text-neutral-400">/month</span>
+                                    </div>
+                                    <div className="mb-6">
+                                        <span className="text-2xl font-bold text-white">100</span>
+                                        <span className="text-neutral-400 block">trading bots</span>
+                                    </div>
+                                    <ul className="text-left space-y-3 mb-8">
+                                        <li className="flex items-center text-neutral-300">
+                                            <svg className="w-5 h-5 text-green-500 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                                            </svg>
+                                            Everything in Free
+                                        </li>
+                                        <li className="flex items-center text-neutral-300">
+                                            <svg className="w-5 h-5 text-green-500 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                                            </svg>
+                                            Advanced risk management
+                                        </li>
+                                        <li className="flex items-center text-neutral-300">
+                                            <svg className="w-5 h-5 text-green-500 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                                            </svg>
+                                            Priority support
+                                        </li>
+                                        <li className="flex items-center text-neutral-300">
+                                            <svg className="w-5 h-5 text-green-500 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                                            </svg>
+                                            Competition rewards
+                                        </li>
+                                    </ul>
+                                    <Button
+                                        onClick={() => router.push('/dashboard')}
+                                        className="w-full bg-[#00d2cee6] hover:bg-[#00a8a5] text-black font-medium"
+                                    >
+                                        Upgrade to Basic
+                                    </Button>
+                                </div>
+                            </CardContent>
+                        </Card>
+
+                        {/* Premium Plan */}
+                        <Card className="bg-[#051419] border border-neutral-700 transform hover:scale-[1.02] transition-all duration-300 relative">
+                            <CardContent className="p-8">
+                                <div className="text-center">
+                                    <h3 className="text-xl font-bold text-white mb-2">Premium</h3>
+                                    <div className="mb-4">
+                                        <span className="text-3xl font-bold text-[#00d2cee6]">50 APT</span>
+                                        <span className="text-neutral-400">/month</span>
+                                    </div>
+                                    <div className="mb-6">
+                                        <span className="text-2xl font-bold text-white">∞</span>
+                                        <span className="text-neutral-400 block">unlimited bots</span>
+                                    </div>
+                                    <ul className="text-left space-y-3 mb-8">
+                                        <li className="flex items-center text-neutral-300">
+                                            <svg className="w-5 h-5 text-green-500 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                                            </svg>
+                                            Everything in Basic
+                                        </li>
+                                        <li className="flex items-center text-neutral-300">
+                                            <svg className="w-5 h-5 text-green-500 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                                            </svg>
+                                            Unlimited trading bots
+                                        </li>
+                                        <li className="flex items-center text-neutral-300">
+                                            <svg className="w-5 h-5 text-green-500 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                                            </svg>
+                                            Advanced analytics
+                                        </li>
+                                        <li className="flex items-center text-neutral-300">
+                                            <svg className="w-5 h-5 text-green-500 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                                            </svg>
+                                            Dedicated support
+                                        </li>
+                                    </ul>
+                                    <Button
+                                        onClick={() => router.push('/dashboard')}
+                                        variant="outline"
+                                        className="w-full border-[#00d2cee6] text-[#00d2cee6] hover:bg-[#00d2cee6] hover:text-black"
+                                    >
+                                        Upgrade to Premium
+                                    </Button>
+                                </div>
+                            </CardContent>
+                        </Card>
+                    </div>
+
+                    <div className="text-center mt-8">
+                        <p className="text-neutral-400">
+                            All subscriptions are paid in APT tokens and renew automatically every 30 days.
+                            <br />
+                            Cancel anytime from your dashboard settings.
+                        </p>
                     </div>
                 </div>
 
