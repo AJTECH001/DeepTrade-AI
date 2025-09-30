@@ -3,6 +3,7 @@
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
 import HeroSection from "@/components/HeroSection";
 
 export default function LandingPage() {
@@ -10,10 +11,9 @@ export default function LandingPage() {
 
     return (
         <div className="min-h-screen bg-[#051419] text-white font-sans">
-
             {/* Navigation */}
-            <nav className="  border-b border-neutral-700 sticky top-0 z-50">
-                <div className=" mx-auto px-4 sm:px-6 lg:px-8">
+            <nav className="border-b border-neutral-700 sticky top-0 z-50">
+                <div className="mx-auto px-4 sm:px-6 lg:px-8">
                     <div className="flex items-center justify-between h-16">
                         <div className="flex items-center">
                             <div className="flex-shrink-0">
@@ -62,9 +62,8 @@ export default function LandingPage() {
             </nav>
 
             {/* Main Content */}
-            <main className="s mx-auto px-4 sm:px-6 lg:px-8 py-8">
+            <main className="mx-auto px-4 sm:px-6 lg:px-8 py-8">
                 {/* Hero Section */}
-               
                 <HeroSection />
 
                 {/* Stats Section */}
@@ -77,12 +76,12 @@ export default function LandingPage() {
                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
                                 </svg>
                             </div>
-                            <p className="text-3xl font-bold mt-2 text-white">143</p>
+                            <p className="text-3xl font-bold mt-2 text-white">4</p>
                             <div className="flex items-center mt-2 text-green-500 text-sm">
                                 <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
                                 </svg>
-                                <span>+12.3% this week</span>
+                                <span>Real bots deployed</span>
                             </div>
                         </CardContent>
                     </Card>
@@ -95,17 +94,17 @@ export default function LandingPage() {
                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1" />
                                 </svg>
                             </div>
-                            <p className="text-3xl font-bold mt-2 text-white">$1.2M</p>
-                            <div className="flex items-center mt-2 text-green-500 text-sm">
+                            <p className="text-3xl font-bold mt-2 text-white">$0</p>
+                            <div className="flex items-center mt-2 text-blue-500 text-sm">
                                 <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
                                 </svg>
-                                <span>+8.7% this week</span>
+                                <span>Bots waiting to trade</span>
                             </div>
                         </CardContent>
                     </Card>
 
-                    <Card className="Active Trades bg-[#051419]  border border-neutral-700 transform hover:scale-[1.02] transition-all duration-300">
+                    <Card className="bg-[#051419] border border-neutral-700 transform hover:scale-[1.02] transition-all duration-300">
                         <CardContent className="p-6">
                             <div className="flex items-center justify-between">
                                 <h3 className="text-lg font-medium text-white">Active Trades</h3>
@@ -113,293 +112,426 @@ export default function LandingPage() {
                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4" />
                                 </svg>
                             </div>
-                            <p className="text-3xl font-bold mt-2 text-white">87</p>
+                            <p className="text-3xl font-bold mt-2 text-white">0</p>
                             <div className="flex items-center mt-2 text-neutral-400 text-sm">
                                 <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 12h14" />
                                 </svg>
-                                <span>+2.1% this week</span>
+                                <span>Ready to execute</span>
                             </div>
                         </CardContent>
                     </Card>
 
-                    <Card className="bg-[#051419]  border border-neutral-700 transform hover:scale-[1.02] transition-all duration-300">
+                    <Card className="bg-[#051419] border border-neutral-700 transform hover:scale-[1.02] transition-all duration-300">
                         <CardContent className="p-6">
                             <div className="flex items-center justify-between">
-                                <h3 className="text-lg font-medium text-white">Avg. Profit</h3>
+                                <h3 className="text-lg font-medium text-white">Deployment Cost</h3>
                                 <svg className="w-6 h-6 text-[#00d2cee6]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1" />
                                 </svg>
                             </div>
-                            <p className="text-3xl font-bold mt-2 text-green-500">+5.2%</p>
-                            <div className="flex items-center mt-2 text-red-500 text-sm">
+                            <p className="text-3xl font-bold mt-2 text-white">~$0.01</p>
+                            <div className="flex items-center mt-2 text-blue-500 text-sm">
                                 <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 17h8m0 0V9m0 8l-8-8-4 4-6-6" />
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
                                 </svg>
-                                <span>-1.3% this week</span>
+                                <span>Low Aptos gas fees</span>
                             </div>
                         </CardContent>
                     </Card>
                 </div>
 
-                {/* Features Grid */}
-                <div className="mb-12">
-                    <h2 className="text-2xl font-bold mb-6">Platform Features</h2>
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                        <Card className="bg-[#051419]  border border-neutral-700 transform hover:scale-[1.02] transition-all duration-300">
-                            <CardContent className="p-6">
-                                <div className="h-12 w-12 rounded-full bg-blue-900/30 flex items-center justify-center mb-4">
-                                    <svg className="w-6 h-6 text-[#00d2cee6]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
-                                    </svg>
+                {/* How DeepTrade AI Works Section */}
+                <div className="mb-16">
+                    <div className="text-center mb-12">
+                        <h2 className="text-3xl font-bold mb-4">How DeepTrade AI Works</h2>
+                        <p className="text-neutral-400 text-lg max-w-3xl mx-auto">
+                            Understand our revolutionary autonomous trading system that lets you create, deploy, and profit from AI-powered trading bots using simple natural language.
+                        </p>
+                    </div>
+
+                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-12">
+                        {/* Step 1: Create Bot */}
+                        <Card className="bg-[#051419] border border-neutral-700 p-6">
+                            <div className="flex items-start gap-4">
+                                <div className="flex-shrink-0 w-10 h-10 bg-gradient-to-r from-[#00d2ce] to-[#00a8a8] rounded-full flex items-center justify-center text-black font-bold">1</div>
+                                <div>
+                                    <h3 className="text-xl font-bold mb-2">Describe Your Strategy</h3>
+                                    <p className="text-neutral-400 mb-4">
+                                        Use natural language to describe your trading strategy. No coding required! Our AI understands plain English.
+                                    </p>
+                                    <div className="bg-neutral-800/50 rounded-lg p-3 border border-neutral-700">
+                                        <p className="text-sm text-[#00d2ce] font-mono">
+                                            "Buy APT when RSI drops below 30 and sell when RSI goes above 70"
+                                        </p>
+                                    </div>
                                 </div>
-                                <h3 className="text-lg font-medium mb-2">Scalable Bot Creation</h3>
-                                <p className="text-neutral-400">
-                                    Start with 10 free bots, scale to 100 with Basic subscription (10 APT/month), or go unlimited with Premium (50 APT/month).
-                                </p>
-                            </CardContent>
+                            </div>
                         </Card>
 
-                        <Card className="bg-[#051419]  border border-neutral-700 transform hover:scale-[1.02] transition-all duration-300">
-                            <CardContent className="p-6">
-                                <div className="h-12 w-12 rounded-full bg-blue-900/30 flex items-center justify-center mb-4">
-                                    <svg className="w-6 h-6 text-[#00d2cee6]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
-                                    </svg>
+                        {/* Step 2: AI Processing */}
+                        <Card className="bg-[#051419] border border-neutral-700 p-6">
+                            <div className="flex items-start gap-4">
+                                <div className="flex-shrink-0 w-10 h-10 bg-gradient-to-r from-[#00d2ce] to-[#00a8a8] rounded-full flex items-center justify-center text-black font-bold">2</div>
+                                <div>
+                                    <h3 className="text-xl font-bold mb-2">AI Converts to Logic</h3>
+                                    <p className="text-neutral-400 mb-4">
+                                        Our GPT-powered AI parser converts your strategy into executable trading logic with technical indicators.
+                                    </p>
+                                    <div className="bg-neutral-800/50 rounded-lg p-3 border border-neutral-700">
+                                        <p className="text-xs text-neutral-300">
+                                            ✅ RSI indicator configured<br/>
+                                            ✅ Buy/sell thresholds set<br/>
+                                            ✅ Risk management applied
+                                        </p>
+                                    </div>
                                 </div>
-                                <h3 className="text-lg font-medium mb-2">Gas-Free Trading</h3>
-                                <p className="text-neutral-400">
-                                    Execute trades with zero gas fees. We use Aptos Gas Station to sponsor all your transactions.
-                                </p>
-                            </CardContent>
+                            </div>
                         </Card>
 
-                        <Card className="bg-[#051419]  border border-neutral-700 transform hover:scale-[1.02] transition-all duration-300">
-                            <CardContent className="p-6">
-                                <div className="h-12 w-12 rounded-full bg-blue-900/30 flex items-center justify-center mb-4">
-                                    <svg className="w-6 h-6 text-[#00d2cee6]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4" />
-                                    </svg>
+                        {/* Step 3: Deploy On-Chain */}
+                        <Card className="bg-[#051419] border border-neutral-700 p-6">
+                            <div className="flex items-start gap-4">
+                                <div className="flex-shrink-0 w-10 h-10 bg-gradient-to-r from-[#00d2ce] to-[#00a8a8] rounded-full flex items-center justify-center text-black font-bold">3</div>
+                                <div>
+                                    <h3 className="text-xl font-bold mb-2">Deploy to Blockchain</h3>
+                                    <p className="text-neutral-400 mb-4">
+                                        Your bot is deployed as a smart contract on Aptos blockchain. All trading happens on-chain with full transparency.
+                                    </p>
+                                    <div className="bg-neutral-800/50 rounded-lg p-3 border border-neutral-700">
+                                        <p className="text-xs text-green-400">
+                                            🔗 On-chain deployment<br/>
+                                            🔒 Funds never leave your wallet<br/>
+                                            👁️ 100% transparent execution
+                                        </p>
+                                    </div>
                                 </div>
-                                <h3 className="text-lg font-medium mb-2">Cross-Chain USDC</h3>
-                                <p className="text-neutral-400">
-                                    Seamlessly bridge USDC across multiple chains using Circle's CCTP protocol for cross-chain trading.
-                                </p>
-                            </CardContent>
+                            </div>
                         </Card>
 
-                        <Card className="bg-[#051419]  border border-neutral-700 transform hover:scale-[1.02] transition-all duration-300">
-                            <CardContent className="p-6">
-                                <div className="h-12 w-12 rounded-full bg-blue-900/30 flex items-center justify-center mb-4">
-                                    <svg className="w-6 h-6 text-[#00d2cee6]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z" />
+                        {/* Step 4: Autonomous Trading */}
+                        <Card className="bg-[#051419] border border-neutral-700 p-6">
+                            <div className="flex items-start gap-4">
+                                <div className="flex-shrink-0 w-10 h-10 bg-gradient-to-r from-[#00d2ce] to-[#00a8a8] rounded-full flex items-center justify-center text-black font-bold">4</div>
+                                <div>
+                                    <h3 className="text-xl font-bold mb-2">Trade Autonomously 24/7</h3>
+                                    <p className="text-neutral-400 mb-4">
+                                        Your bot monitors markets continuously and executes trades automatically when conditions match your strategy.
+                                    </p>
+                                    <div className="bg-neutral-800/50 rounded-lg p-3 border border-neutral-700">
+                                        <p className="text-xs text-blue-400">
+                                            ⚡ Real-time market monitoring<br/>
+                                            🤖 Automatic trade execution<br/>
+                                            📊 Live performance tracking
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+                        </Card>
+                    </div>
+
+                    {/* Key Benefits */}
+                    <div className="bg-gradient-to-r from-[#00d2ce10] to-[#00a8a810] rounded-2xl p-8 border border-neutral-700">
+                        <h3 className="text-2xl font-bold mb-6 text-center">Why Choose DeepTrade AI?</h3>
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                            <div className="text-center">
+                                <div className="w-16 h-16 bg-[#00d2ce] rounded-full flex items-center justify-center mx-auto mb-4">
+                                    <svg className="w-8 h-8 text-black" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1" />
                                     </svg>
                                 </div>
-                                <h3 className="text-lg font-medium mb-2">Trading Competitions</h3>
-                                <p className="text-neutral-400">
-                                    Compete in real-time trading contests and earn rewards based on your bot's performance.
+                                <h4 className="text-lg font-bold mb-2">Ultra-Low Costs</h4>
+                                <p className="text-neutral-400 text-sm">
+                                    Deploy bots for ~$0.01 on Aptos. Extremely low transaction costs compared to Ethereum or other chains.
                                 </p>
-                            </CardContent>
-                        </Card>
-
-                        <Card className="bg-[#051419]  border border-neutral-700 transform hover:scale-[1.02] transition-all duration-300">
-                            <CardContent className="p-6">
-                                <div className="h-12 w-12 rounded-full bg-blue-900/30 flex items-center justify-center mb-4">
-                                    <svg className="w-6 h-6 text-[#00d2cee6]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            </div>
+                            <div className="text-center">
+                                <div className="w-16 h-16 bg-[#00d2ce] rounded-full flex items-center justify-center mx-auto mb-4">
+                                    <svg className="w-8 h-8 text-black" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
                                     </svg>
                                 </div>
-                                <h3 className="text-lg font-medium mb-2">Risk Management</h3>
-                                <p className="text-neutral-400">
-                                    Configure advanced risk parameters like stop-loss, take-profit, and position sizing for each bot.
+                                <h4 className="text-lg font-bold mb-2">Your Funds Stay Safe</h4>
+                                <p className="text-neutral-400 text-sm">
+                                    Funds never leave your wallet. Bots trade using your balance but can't access your private keys.
                                 </p>
-                            </CardContent>
-                        </Card>
-
-                        <Card className="bg-[#051419]  border border-neutral-700 transform hover:scale-[1.02] transition-all duration-300">
-                            <CardContent className="p-6">
-                                <div className="h-12 w-12 rounded-full bg-blue-900/30 flex items-center justify-center mb-4">
-                                    <svg className="w-6 h-6 text-[#00d2cee6]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+                            </div>
+                            <div className="text-center">
+                                <div className="w-16 h-16 bg-[#00d2ce] rounded-full flex items-center justify-center mx-auto mb-4">
+                                    <svg className="w-8 h-8 text-black" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
                                     </svg>
                                 </div>
-                                <h3 className="text-lg font-medium mb-2">Performance Analytics</h3>
-                                <p className="text-neutral-400">
-                                    Track your bot's performance with detailed metrics, trade history, and profitability analysis.
+                                <h4 className="text-lg font-bold mb-2">Compete & Earn</h4>
+                                <p className="text-neutral-400 text-sm">
+                                    Join real-time competitions and earn rewards based on your bot's performance in the leaderboard.
                                 </p>
-                            </CardContent>
-                        </Card>
+                            </div>
+                        </div>
                     </div>
                 </div>
 
-                {/* Subscription Plans Section */}
-                <div className="mb-12">
-                    <div className="text-center mb-8">
-                        <h2 className="text-3xl font-bold mb-4">Choose Your Bot Limit</h2>
-                        <p className="text-neutral-400 text-lg">Scale your trading operations with flexible subscription plans</p>
+                {/* Trading Examples Section */}
+                <div className="mb-16">
+                    <div className="text-center mb-12">
+                        <h2 className="text-3xl font-bold mb-4">Real Trading Strategy Examples</h2>
+                        <p className="text-neutral-400 text-lg max-w-3xl mx-auto">
+                            See how easy it is to create profitable trading strategies with natural language. These examples show real strategies you can deploy right now.
+                        </p>
                     </div>
 
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                        {/* Free Plan */}
-                        <Card className="bg-[#051419] border border-neutral-700 transform hover:scale-[1.02] transition-all duration-300 relative">
-                            <CardContent className="p-8">
-                                <div className="text-center">
-                                    <h3 className="text-xl font-bold text-white mb-2">Free</h3>
-                                    <div className="mb-4">
-                                        <span className="text-3xl font-bold text-[#00d2cee6]">$0</span>
-                                        <span className="text-neutral-400">/month</span>
-                                    </div>
-                                    <div className="mb-6">
-                                        <span className="text-2xl font-bold text-white">10</span>
-                                        <span className="text-neutral-400 block">trading bots</span>
-                                    </div>
-                                    <ul className="text-left space-y-3 mb-8">
-                                        <li className="flex items-center text-neutral-300">
-                                            <svg className="w-5 h-5 text-green-500 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                                            </svg>
-                                            Natural language strategies
-                                        </li>
-                                        <li className="flex items-center text-neutral-300">
-                                            <svg className="w-5 h-5 text-green-500 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                                            </svg>
-                                            Gas-free trading
-                                        </li>
-                                        <li className="flex items-center text-neutral-300">
-                                            <svg className="w-5 h-5 text-green-500 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                                            </svg>
-                                            Basic analytics
-                                        </li>
-                                    </ul>
-                                    <Button
-                                        onClick={() => router.push('/dashboard')}
-                                        variant="outline"
-                                        className="w-full border-neutral-600 hover:bg-neutral-700"
-                                    >
-                                        Get Started Free
-                                    </Button>
-                                </div>
-                            </CardContent>
-                        </Card>
-
-                        {/* Basic Plan */}
-                        <Card className="bg-[#051419] border-2 border-[#00d2cee6] transform hover:scale-[1.02] transition-all duration-300 relative">
-                            <div className="absolute top-0 left-1/2 transform -translate-x-1/2 -translate-y-1/2">
-                                <span className="bg-[#00d2cee6] text-black px-4 py-1 rounded-full text-sm font-medium">
-                                    Most Popular
-                                </span>
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
+                        {/* RSI Strategy */}
+                        <Card className="bg-[#051419] border border-neutral-700 p-6 hover:border-[#00d2ce] transition-all duration-300">
+                            <div className="flex items-center gap-3 mb-4">
+                                <Badge className="bg-green-500/20 text-green-400 border-green-500/30">RSI Strategy</Badge>
+                                <Badge className="bg-blue-500/20 text-blue-400 border-blue-500/30">Beginner</Badge>
                             </div>
-                            <CardContent className="p-8">
-                                <div className="text-center">
-                                    <h3 className="text-xl font-bold text-white mb-2">Basic</h3>
-                                    <div className="mb-4">
-                                        <span className="text-3xl font-bold text-[#00d2cee6]">10 APT</span>
-                                        <span className="text-neutral-400">/month</span>
-                                    </div>
-                                    <div className="mb-6">
-                                        <span className="text-2xl font-bold text-white">100</span>
-                                        <span className="text-neutral-400 block">trading bots</span>
-                                    </div>
-                                    <ul className="text-left space-y-3 mb-8">
-                                        <li className="flex items-center text-neutral-300">
-                                            <svg className="w-5 h-5 text-green-500 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                                            </svg>
-                                            Everything in Free
-                                        </li>
-                                        <li className="flex items-center text-neutral-300">
-                                            <svg className="w-5 h-5 text-green-500 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                                            </svg>
-                                            Advanced risk management
-                                        </li>
-                                        <li className="flex items-center text-neutral-300">
-                                            <svg className="w-5 h-5 text-green-500 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                                            </svg>
-                                            Priority support
-                                        </li>
-                                        <li className="flex items-center text-neutral-300">
-                                            <svg className="w-5 h-5 text-green-500 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                                            </svg>
-                                            Competition rewards
-                                        </li>
-                                    </ul>
-                                    <Button
-                                        onClick={() => router.push('/dashboard')}
-                                        className="w-full bg-[#00d2cee6] hover:bg-[#00a8a5] text-black font-medium"
-                                    >
-                                        Upgrade to Basic
-                                    </Button>
+                            <h3 className="text-lg font-bold mb-3">Mean Reversion</h3>
+                            <div className="bg-neutral-800/50 rounded-lg p-4 mb-4 border border-neutral-700">
+                                <p className="text-sm text-[#00d2ce] font-mono leading-relaxed">
+                                    "Buy APT when RSI drops below 30 and sell when RSI goes above 70 with 2% stop loss"
+                                </p>
+                            </div>
+                            <div className="space-y-2 text-sm">
+                                <div className="flex justify-between">
+                                    <span className="text-neutral-400">Strategy Type:</span>
+                                    <span className="text-white">Mean Reversion</span>
                                 </div>
-                            </CardContent>
+                                <div className="flex justify-between">
+                                    <span className="text-neutral-400">Risk Level:</span>
+                                    <span className="text-green-400">Low</span>
+                                </div>
+                                <div className="flex justify-between">
+                                    <span className="text-neutral-400">Avg. Trades/Day:</span>
+                                    <span className="text-white">2-4</span>
+                                </div>
+                            </div>
                         </Card>
 
-                        {/* Premium Plan */}
-                        <Card className="bg-[#051419] border border-neutral-700 transform hover:scale-[1.02] transition-all duration-300 relative">
-                            <CardContent className="p-8">
-                                <div className="text-center">
-                                    <h3 className="text-xl font-bold text-white mb-2">Premium</h3>
-                                    <div className="mb-4">
-                                        <span className="text-3xl font-bold text-[#00d2cee6]">50 APT</span>
-                                        <span className="text-neutral-400">/month</span>
-                                    </div>
-                                    <div className="mb-6">
-                                        <span className="text-2xl font-bold text-white">∞</span>
-                                        <span className="text-neutral-400 block">unlimited bots</span>
-                                    </div>
-                                    <ul className="text-left space-y-3 mb-8">
-                                        <li className="flex items-center text-neutral-300">
-                                            <svg className="w-5 h-5 text-green-500 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                                            </svg>
-                                            Everything in Basic
-                                        </li>
-                                        <li className="flex items-center text-neutral-300">
-                                            <svg className="w-5 h-5 text-green-500 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                                            </svg>
-                                            Unlimited trading bots
-                                        </li>
-                                        <li className="flex items-center text-neutral-300">
-                                            <svg className="w-5 h-5 text-green-500 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                                            </svg>
-                                            Advanced analytics
-                                        </li>
-                                        <li className="flex items-center text-neutral-300">
-                                            <svg className="w-5 h-5 text-green-500 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                                            </svg>
-                                            Dedicated support
-                                        </li>
-                                    </ul>
-                                    <Button
-                                        onClick={() => router.push('/dashboard')}
-                                        variant="outline"
-                                        className="w-full border-[#00d2cee6] text-[#00d2cee6] hover:bg-[#00d2cee6] hover:text-black"
-                                    >
-                                        Upgrade to Premium
-                                    </Button>
+                        {/* Momentum Strategy */}
+                        <Card className="bg-[#051419] border border-neutral-700 p-6 hover:border-[#00d2ce] transition-all duration-300">
+                            <div className="flex items-center gap-3 mb-4">
+                                <Badge className="bg-purple-500/20 text-purple-400 border-purple-500/30">MACD Strategy</Badge>
+                                <Badge className="bg-yellow-500/20 text-yellow-400 border-yellow-500/30">Intermediate</Badge>
+                            </div>
+                            <h3 className="text-lg font-bold mb-3">Momentum Following</h3>
+                            <div className="bg-neutral-800/50 rounded-lg p-4 mb-4 border border-neutral-700">
+                                <p className="text-sm text-[#00d2ce] font-mono leading-relaxed">
+                                    "Buy when MACD crosses above signal line and volume is 50% above average, sell when MACD crosses below"
+                                </p>
+                            </div>
+                            <div className="space-y-2 text-sm">
+                                <div className="flex justify-between">
+                                    <span className="text-neutral-400">Strategy Type:</span>
+                                    <span className="text-white">Momentum</span>
                                 </div>
-                            </CardContent>
+                                <div className="flex justify-between">
+                                    <span className="text-neutral-400">Risk Level:</span>
+                                    <span className="text-yellow-400">Medium</span>
+                                </div>
+                                <div className="flex justify-between">
+                                    <span className="text-neutral-400">Avg. Trades/Day:</span>
+                                    <span className="text-white">1-3</span>
+                                </div>
+                            </div>
+                        </Card>
+
+                        {/* Arbitrage Strategy */}
+                        <Card className="bg-[#051419] border border-neutral-700 p-6 hover:border-[#00d2ce] transition-all duration-300">
+                            <div className="flex items-center gap-3 mb-4">
+                                <Badge className="bg-orange-500/20 text-orange-400 border-orange-500/30">Cross-Chain</Badge>
+                                <Badge className="bg-red-500/20 text-red-400 border-red-500/30">Advanced</Badge>
+                            </div>
+                            <h3 className="text-lg font-bold mb-3">Arbitrage Bot</h3>
+                            <div className="bg-neutral-800/50 rounded-lg p-4 mb-4 border border-neutral-700">
+                                <p className="text-sm text-[#00d2ce] font-mono leading-relaxed">
+                                    "Find price differences for USDC between Ethereum and Aptos, execute arbitrage when profit exceeds 0.5%"
+                                </p>
+                            </div>
+                            <div className="space-y-2 text-sm">
+                                <div className="flex justify-between">
+                                    <span className="text-neutral-400">Strategy Type:</span>
+                                    <span className="text-white">Arbitrage</span>
+                                </div>
+                                <div className="flex justify-between">
+                                    <span className="text-neutral-400">Risk Level:</span>
+                                    <span className="text-red-400">High</span>
+                                </div>
+                                <div className="flex justify-between">
+                                    <span className="text-neutral-400">Avg. Trades/Day:</span>
+                                    <span className="text-white">5-10</span>
+                                </div>
+                            </div>
+                        </Card>
+                    </div>
+
+                    <div className="text-center">
+                        <Button
+                            onClick={() => router.push('/dashboard')}
+                            className="bg-gradient-to-r from-[#00d2ce] to-[#00a8a8] hover:from-[#00a8a8] hover:to-[#007a7a] px-8 py-3 rounded-xl font-medium text-white transition-transform duration-300 transform hover:scale-105"
+                        >
+                            Try These Strategies Now
+                        </Button>
+                    </div>
+                </div>
+
+                {/* Quick Start Guide */}
+                <div className="mb-16">
+                    <div className="text-center mb-12">
+                        <h2 className="text-3xl font-bold mb-4">Quick Start Guide</h2>
+                        <p className="text-neutral-400 text-lg max-w-3xl mx-auto">
+                            Ready to start trading? Follow these simple steps to create your first AI-powered trading bot in under 5 minutes.
+                        </p>
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                        {/* Step 1 */}
+                        <Card className="bg-[#051419] border border-neutral-700 text-center p-6 hover:border-[#00d2ce] transition-all duration-300">
+                            <div className="w-16 h-16 bg-gradient-to-r from-[#00d2ce] to-[#00a8a8] rounded-full flex items-center justify-center mx-auto mb-4 text-black font-bold text-xl">
+                                1
+                            </div>
+                            <h3 className="text-lg font-bold mb-3">Connect Wallet</h3>
+                            <p className="text-neutral-400 text-sm mb-4">
+                                Connect your Aptos wallet (Petra, Pontem, or Martian) to get started with the platform.
+                            </p>
+                            <Badge className="bg-blue-500/20 text-blue-400 border-blue-500/30 text-xs">
+                                30 seconds
+                            </Badge>
+                        </Card>
+
+                        {/* Step 2 */}
+                        <Card className="bg-[#051419] border border-neutral-700 text-center p-6 hover:border-[#00d2ce] transition-all duration-300">
+                            <div className="w-16 h-16 bg-gradient-to-r from-[#00d2ce] to-[#00a8a8] rounded-full flex items-center justify-center mx-auto mb-4 text-black font-bold text-xl">
+                                2
+                            </div>
+                            <h3 className="text-lg font-bold mb-3">Fund Your Wallet</h3>
+                            <p className="text-neutral-400 text-sm mb-4">
+                                Add USDC to your wallet for trading. Start with any amount - even $10 works for testing strategies.
+                            </p>
+                            <Badge className="bg-green-500/20 text-green-400 border-green-500/30 text-xs">
+                                2 minutes
+                            </Badge>
+                        </Card>
+
+                        {/* Step 3 */}
+                        <Card className="bg-[#051419] border border-neutral-700 text-center p-6 hover:border-[#00d2ce] transition-all duration-300">
+                            <div className="w-16 h-16 bg-gradient-to-r from-[#00d2ce] to-[#00a8a8] rounded-full flex items-center justify-center mx-auto mb-4 text-black font-bold text-xl">
+                                3
+                            </div>
+                            <h3 className="text-lg font-bold mb-3">Describe Strategy</h3>
+                            <p className="text-neutral-400 text-sm mb-4">
+                                Write your trading strategy in plain English. Try "Buy APT when RSI &lt; 30, sell when RSI &gt; 70".
+                            </p>
+                            <Badge className="bg-purple-500/20 text-purple-400 border-purple-500/30 text-xs">
+                                1 minute
+                            </Badge>
+                        </Card>
+
+                        {/* Step 4 */}
+                        <Card className="bg-[#051419] border border-neutral-700 text-center p-6 hover:border-[#00d2ce] transition-all duration-300">
+                            <div className="w-16 h-16 bg-gradient-to-r from-[#00d2ce] to-[#00a8a8] rounded-full flex items-center justify-center mx-auto mb-4 text-black font-bold text-xl">
+                                4
+                            </div>
+                            <h3 className="text-lg font-bold mb-3">Deploy & Trade</h3>
+                            <p className="text-neutral-400 text-sm mb-4">
+                                Deploy your bot to the blockchain and watch it trade automatically 24/7 based on market conditions.
+                            </p>
+                            <Badge className="bg-orange-500/20 text-orange-400 border-orange-500/30 text-xs">
+                                1 minute
+                            </Badge>
                         </Card>
                     </div>
 
                     <div className="text-center mt-8">
-                        <p className="text-neutral-400">
-                            All subscriptions are paid in APT tokens and renew automatically every 30 days.
-                            <br />
-                            Cancel anytime from your dashboard settings.
+                        <Button
+                            onClick={() => router.push('/dashboard')}
+                            className="bg-gradient-to-r from-[#00d2ce] to-[#00a8a8] hover:from-[#00a8a8] hover:to-[#007a7a] px-8 py-4 rounded-xl font-medium text-white text-lg transition-transform duration-300 transform hover:scale-105"
+                        >
+                            Start Building Now - It's Free!
+                        </Button>
+                        <p className="text-neutral-400 text-sm mt-3">
+                            No credit card required • 10 free bots included • Deploy in under 5 minutes
                         </p>
                     </div>
                 </div>
 
+                {/* FAQ Section */}
+                <div className="mb-16">
+                    <div className="text-center mb-12">
+                        <h2 className="text-3xl font-bold mb-4">Frequently Asked Questions</h2>
+                        <p className="text-neutral-400 text-lg max-w-3xl mx-auto">
+                            Everything you need to know about DeepTrade AI's autonomous trading platform.
+                        </p>
+                    </div>
+
+                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                        {/* Left Column */}
+                        <div className="space-y-6">
+                            <Card className="bg-[#051419] border border-neutral-700 p-6">
+                                <h3 className="text-lg font-bold mb-3 text-[#00d2ce]">How does autonomous trading work?</h3>
+                                <p className="text-neutral-400 text-sm leading-relaxed">
+                                    Your trading bot runs as a smart contract on the Aptos blockchain. It continuously monitors market data (prices, technical indicators, volume) and automatically executes trades when your strategy conditions are met. The bot operates 24/7 without manual intervention, but you retain full control over your funds.
+                                </p>
+                            </Card>
+
+                            <Card className="bg-[#051419] border border-neutral-700 p-6">
+                                <h3 className="text-lg font-bold mb-3 text-[#00d2ce]">Are my funds safe?</h3>
+                                <p className="text-neutral-400 text-sm leading-relaxed">
+                                    Yes! Your funds never leave your wallet. The trading bot can only execute approved trades using your existing balance, but cannot withdraw or transfer your assets elsewhere. You maintain full custody of your private keys and can disable the bot anytime.
+                                </p>
+                            </Card>
+
+                            <Card className="bg-[#051419] border border-neutral-700 p-6">
+                                <h3 className="text-lg font-bold mb-3 text-[#00d2ce]">What trading strategies can I create?</h3>
+                                <p className="text-neutral-400 text-sm leading-relaxed">
+                                    You can create any strategy using technical indicators (RSI, MACD, Moving Averages, Bollinger Bands), price patterns, volume analysis, and cross-chain arbitrage. Popular strategies include mean reversion, momentum trading, scalping, and DCA (Dollar Cost Averaging).
+                                </p>
+                            </Card>
+
+                            <Card className="bg-[#051419] border border-neutral-700 p-6">
+                                <h3 className="text-lg font-bold mb-3 text-[#00d2ce]">What are the costs involved?</h3>
+                                <p className="text-neutral-400 text-sm leading-relaxed">
+                                    Deploying a bot costs ~$0.01 in APT gas fees (very low compared to other blockchains). Each trade execution also incurs minimal Aptos gas fees (~$0.001). Optional subscription fees apply for more than 10 bots: Basic (100 bots) = 10 APT/month, Premium (unlimited) = 50 APT/month.
+                                </p>
+                            </Card>
+                        </div>
+
+                        {/* Right Column */}
+                        <div className="space-y-6">
+                            <Card className="bg-[#051419] border border-neutral-700 p-6">
+                                <h3 className="text-lg font-bold mb-3 text-[#00d2ce]">How do I monitor my bot's performance?</h3>
+                                <p className="text-neutral-400 text-sm leading-relaxed">
+                                    The dashboard provides real-time performance analytics including P&L, ROI, win rate, trade history, and risk metrics. You can also see your bot's ranking in the global leaderboard and compare performance with other traders.
+                                </p>
+                            </Card>
+
+                            <Card className="bg-[#051419] border border-neutral-700 p-6">
+                                <h3 className="text-lg font-bold mb-3 text-[#00d2ce]">Can I modify strategies after deployment?</h3>
+                                <p className="text-neutral-400 text-sm leading-relaxed">
+                                    Yes! You can pause, modify parameters, or completely update your bot's strategy at any time. Changes take effect immediately, giving you flexibility to adapt to market conditions or improve performance based on results.
+                                </p>
+                            </Card>
+
+                            <Card className="bg-[#051419] border border-neutral-700 p-6">
+                                <h3 className="text-lg font-bold mb-3 text-[#00d2ce]">What are the trading competitions?</h3>
+                                <p className="text-neutral-400 text-sm leading-relaxed">
+                                    Regular competitions where bots compete based on performance metrics like ROI, total profit, or risk-adjusted returns. Winners earn APT rewards and recognition on the leaderboard. Competitions run weekly with different themes and prize pools.
+                                </p>
+                            </Card>
+
+                            <Card className="bg-[#051419] border border-neutral-700 p-6">
+                                <h3 className="text-lg font-bold mb-3 text-[#00d2ce]">How do I get started with no experience?</h3>
+                                <p className="text-neutral-400 text-sm leading-relaxed">
+                                    Start with simple strategies like "Buy when price drops 5%, sell when it rises 3%". Use paper trading mode to test strategies risk-free, copy successful strategies from the leaderboard, and gradually learn technical indicators through our tutorials.
+                                </p>
+                            </Card>
+                        </div>
+                    </div>
+                </div>
+
                 {/* CTA Section */}
-                <div className="bg-[#051419]  border border-neutral-700 rounded-2xl p-8 relative overflow-hidden mb-12">
+                <div className="bg-[#051419] border border-neutral-700 rounded-2xl p-8 relative overflow-hidden mb-12">
                     <div className="relative z-10 md:flex items-center justify-between">
                         <div className="md:w-7/12 mb-6 md:mb-0">
                             <h2 className="text-2xl font-bold mb-4">Ready to Start Trading?</h2>
@@ -420,21 +552,21 @@ export default function LandingPage() {
                         </div>
                         <div className="md:w-4/12">
                             <div className="grid grid-cols-2 gap-4">
-                                <div className=" border border-neutral-700 rounded-xl p-4 text-center transform hover:scale-105 transition-all duration-200">
-                                    <p className="text-xl font-bold text-[#00d2cee6]">0%</p>
-                                    <p className="text-sm text-neutral-400">Gas Fees</p>
+                                <div className="border border-neutral-700 rounded-xl p-4 text-center transform hover:scale-105 transition-all duration-200">
+                                    <p className="text-xl font-bold text-[#00d2cee6]">$0.01</p>
+                                    <p className="text-sm text-neutral-400">Deploy Cost</p>
                                 </div>
-                                <div className=" border border-neutral-700 rounded-xl p-4 text-center transform hover:scale-105 transition-all duration-200">
+                                <div className="border border-neutral-700 rounded-xl p-4 text-center transform hover:scale-105 transition-all duration-200">
                                     <p className="text-xl font-bold text-[#00d2cee6]">24/7</p>
                                     <p className="text-sm text-neutral-400">Automated Trading</p>
                                 </div>
-                                <div className=" border border-neutral-700 rounded-xl p-4 text-center transform hover:scale-105 transition-all duration-200">
+                                <div className="border border-neutral-700 rounded-xl p-4 text-center transform hover:scale-105 transition-all duration-200">
                                     <p className="text-xl font-bold text-[#00d2cee6]">100%</p>
                                     <p className="text-sm text-neutral-400">On-Chain</p>
                                 </div>
-                                <div className=" border border-neutral-700 rounded-xl p-4 text-center transform hover:scale-105 transition-all duration-200">
-                                    <p className="text-xl font-bold text-[#00d2cee6]">$5K</p>
-                                    <p className="text-sm text-neutral-400">Weekly Prizes</p>
+                                <div className="border border-neutral-700 rounded-xl p-4 text-center transform hover:scale-105 transition-all duration-200">
+                                    <p className="text-xl font-bold text-[#00d2cee6]">10</p>
+                                    <p className="text-sm text-neutral-400">Free Bots</p>
                                 </div>
                             </div>
                         </div>
@@ -443,8 +575,8 @@ export default function LandingPage() {
             </main>
 
             {/* Footer */}
-            <footer className=" border-t border-neutral-800 py-12">
-                <div className=" mx-auto px-4 sm:px-6 lg:px-8">
+            <footer className="border-t border-neutral-800 py-12">
+                <div className="mx-auto px-4 sm:px-6 lg:px-8">
                     <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
                         <div>
                             <h3 className="text-[#00d2cee6] text-xl font-bold mb-4">DeepTrade AI</h3>
@@ -505,4 +637,4 @@ export default function LandingPage() {
             </footer>
         </div>
     );
-} 
+}

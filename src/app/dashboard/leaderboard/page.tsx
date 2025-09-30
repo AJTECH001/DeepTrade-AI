@@ -1,7 +1,7 @@
 "use client";
 
 import { DashboardLayout } from "@/components/DashboardLayout";
-import { Leaderboard } from "@/components/Leaderboard";
+import { EnhancedLeaderboard } from "@/components/EnhancedLeaderboard";
 
 export default function LeaderboardPage() {
   return (
@@ -14,7 +14,7 @@ export default function LeaderboardPage() {
           </p>
         </div>
 
-        <Leaderboard />
+        <EnhancedLeaderboard />
       </div>
     </DashboardLayout>
   );

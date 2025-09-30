@@ -22,9 +22,20 @@ const HeroSection = () => {
               +AI
             </span>
           </h1>
-          <p className="text-lg md:text-xl text-neutral-300 mb-8 max-w-md leading-relaxed">
-            Build AI-powered trading bots with natural language, deploy on the Aptos blockchain, and dominate real-time trading competitions.
+          <p className="text-lg md:text-xl text-neutral-300 mb-6 max-w-md leading-relaxed">
+            The world's first platform that lets you create autonomous trading bots using plain English. No coding required - just describe your strategy and watch it trade 24/7 on the blockchain.
           </p>
+          <div className="flex flex-wrap gap-4 mb-8">
+            <div className="flex items-center gap-2 text-[#00d2ce] text-sm">
+              ✅ <span className="text-neutral-300">Ultra-low costs (~$0.01)</span>
+            </div>
+            <div className="flex items-center gap-2 text-[#00d2ce] text-sm">
+              ✅ <span className="text-neutral-300">Your funds stay safe</span>
+            </div>
+            <div className="flex items-center gap-2 text-[#00d2ce] text-sm">
+              ✅ <span className="text-neutral-300">24/7 autonomous trading</span>
+            </div>
+          </div>
           <div className="flex flex-wrap gap-4">
             <Button
               onClick={() => router.push('/dashboard')}
