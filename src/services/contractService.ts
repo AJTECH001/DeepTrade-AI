@@ -475,6 +475,30 @@ export class ContractService {
       };
     }
   }
+
+  async getBotUSDCBalance(botOwner: string, botId: string): Promise<ContractResponse<number>> {
+    try {
+      this.validateModuleAddress();
+      const client = aptosClient();
+
+      const response = await client.view({
+        payload: {
+          function: `${this.moduleAddress}::trading_bot::get_bot_usdc_balance`,
+          functionArguments: [botOwner, botId],
+        },
+      });
+
+      return {
+        success: true,
+        data: response[0] as number,
+      };
+    } catch (error) {
+      return {
+        success: false,
+        error: error instanceof Error ? error.message : "Failed to fetch bot USDC balance",
+      };
+    }
+  }
 }
 
 export const contractService = new ContractService();

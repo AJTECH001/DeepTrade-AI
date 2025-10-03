@@ -3,6 +3,9 @@ import { useWallet } from "@aptos-labs/wallet-adapter-react";
 import { contractService } from "@/services/contractService";
 import { CreateBotParams, PurchaseSubscriptionParams, SubscriptionTier } from "@/types/contract";
 import { useToast } from "@/components/ui/use-toast";
+import { Aptos, AptosConfig, Network } from "@aptos-labs/ts-sdk";
+
+const USDC_METADATA_ADDRESS = "0xf22bede237a07e121b56d91a491eb7bcdfd1f5907926a9e58338f964a01b17fa";
 
 export function useUserBots(userAddress?: string) {
   return useQuery({
@@ -292,5 +295,61 @@ export function usePurchaseSubscription() {
         });
       }
     },
+  });
+}
+
+// ======================== USDC Hooks ========================
+
+/**
+ * Hook to fetch user's USDC balance on Aptos
+ */
+export function useUserUSDCBalance(userAddress?: string) {
+  const config = new AptosConfig({ network: Network.TESTNET });
+  const aptos = new Aptos(config);
+
+  return useQuery({
+    queryKey: ["userUSDCBalance", userAddress],
+    queryFn: async () => {
+      if (!userAddress) return 0;
+
+      try {
+        const balance = await aptos.view({
+          payload: {
+            function: "0x1::primary_fungible_store::balance",
+            typeArguments: [],
+            functionArguments: [userAddress, USDC_METADATA_ADDRESS],
+          },
+        });
+
+        return Number(balance[0]) || 0;
+      } catch (error) {
+        console.error("Failed to fetch USDC balance:", error);
+        return 0;
+      }
+    },
+    enabled: !!userAddress,
+    refetchInterval: 15000, // Refetch every 15 seconds
+  });
+}
+
+/**
+ * Hook to fetch a bot's USDC balance
+ */
+export function useBotUSDCBalance(botOwner?: string, botId?: string) {
+  return useQuery({
+    queryKey: ["botUSDCBalance", botOwner, botId],
+    queryFn: async () => {
+      if (!botOwner || !botId) return 0;
+
+      try {
+        const result = await contractService.getBotUSDCBalance(botOwner, botId);
+        return result.success ? result.data : 0;
+      } catch (error) {
+        console.error("Failed to fetch bot USDC balance:", error);
+        return 0;
+      }
+    },
+    enabled: !!botOwner && !!botId,
+    refetchInterval: 15000,
   });
 }

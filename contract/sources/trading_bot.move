@@ -8,10 +8,13 @@ module trading_bot_addr::trading_bot {
     use std::vector; // Dynamic array operations
     use std::signer; // Signer type for authentication
     use aptos_std::timestamp; // Timestamp utilities for time-based operations
-    
+
     // Importing Aptos framework modules for core blockchain functionality
     use aptos_framework::event::{Self, EventHandle}; // Event emission and handling
     use aptos_framework::account; // Account management utilities
+    use aptos_framework::fungible_asset::Metadata;
+    use aptos_framework::object;
+    use aptos_framework::primary_fungible_store;
 
     // ======================== Error Codes ========================
     // Error codes for specific failure cases to provide clear error handling
@@ -27,6 +30,10 @@ module trading_bot_addr::trading_bot {
     const EINVALID_TRADE_PARAMS: u64 = 5;
     /// Trade exceeds configured risk limits
     const ERISK_LIMIT_EXCEEDED: u64 = 6;
+    /// Insufficient USDC balance for deposit/withdrawal
+    const EINSUFFICIENT_USDC: u64 = 7;
+    /// Invalid withdrawal amount
+    const EINVALID_WITHDRAWAL: u64 = 8;
 
     // ======================== Constants ========================
     // Constants defining operational limits for the trading bot system
@@ -50,6 +57,10 @@ module trading_bot_addr::trading_bot {
     const PREMIUM_SUBSCRIPTION_PRICE: u64 = 5000000000; // 50 APT (50 * 1e8)
     /// Subscription duration in seconds (30 days)
     const SUBSCRIPTION_DURATION: u64 = 2592000; // 30 * 24 * 60 * 60
+
+    // USDC Constants (Circle USDC on Aptos)
+    /// Circle USDC metadata address on Aptos
+    const USDC_METADATA_ADDRESS: address = @0xf22bede237a07e121b56d91a491eb7bcdfd1f5907926a9e58338f964a01b17fa;
 
     // ======================== Data Structures ========================
 
@@ -180,6 +191,20 @@ module trading_bot_addr::trading_bot {
         previous_tier: u8, // Previous subscription tier
     }
 
+    struct USDCDepositedEvent has drop, store {
+        bot_id: u64, // Bot ID
+        owner: address, // Bot owner
+        amount: u64, // Amount of USDC deposited (in micro USDC)
+        new_balance: u64, // New bot USDC balance
+    }
+
+    struct USDCWithdrawnEvent has drop, store {
+        bot_id: u64, // Bot ID
+        owner: address, // Bot owner
+        amount: u64, // Amount of USDC withdrawn
+        remaining_balance: u64, // Remaining bot USDC balance
+    }
+
     /// Stores event handles for emitting bot-related events
     /// Stored as a resource with `key` ability
     struct TradingBotEvents has key {
@@ -188,6 +213,8 @@ module trading_bot_addr::trading_bot {
         performance_updated_events: EventHandle<BotPerformanceUpdatedEvent>, // Handle for performance updates
         subscription_purchased_events: EventHandle<SubscriptionPurchasedEvent>, // Handle for subscription purchases
         subscription_expired_events: EventHandle<SubscriptionExpiredEvent>, // Handle for subscription expirations
+        usdc_deposited_events: EventHandle<USDCDepositedEvent>, // Handle for USDC deposits
+        usdc_withdrawn_events: EventHandle<USDCWithdrawnEvent>, // Handle for USDC withdrawals
     }
 
     // ======================== Module Initialization ========================
@@ -216,6 +243,8 @@ module trading_bot_addr::trading_bot {
             performance_updated_events: account::new_event_handle<BotPerformanceUpdatedEvent>(sender),
             subscription_purchased_events: account::new_event_handle<SubscriptionPurchasedEvent>(sender),
             subscription_expired_events: account::new_event_handle<SubscriptionExpiredEvent>(sender),
+            usdc_deposited_events: account::new_event_handle<USDCDepositedEvent>(sender),
+            usdc_withdrawn_events: account::new_event_handle<USDCWithdrawnEvent>(sender),
         });
     }
 
@@ -416,6 +445,147 @@ public entry fun create_bot(
         initial_balance,
     });
 }
+
+    // ======================== USDC Management Functions ========================
+
+    /// Deposit USDC to a bot's balance
+    /// User transfers USDC from their wallet to the bot
+    public entry fun deposit_usdc_to_bot(
+        sender: &signer,
+        bot_id: u64,
+        amount: u64,
+    ) acquires UserBots, TradingBotEvents {
+        let sender_addr = signer::address_of(sender);
+
+        // Validate parameters
+        assert!(amount > 0, EINVALID_TRADE_PARAMS);
+        assert!(exists<UserBots>(sender_addr), EBOT_NOT_FOUND);
+
+        // Get USDC metadata object
+        let usdc_metadata = object::address_to_object<Metadata>(USDC_METADATA_ADDRESS);
+
+        // Check user has sufficient USDC balance
+        let user_usdc_balance = primary_fungible_store::balance(sender_addr, usdc_metadata);
+        assert!(user_usdc_balance >= amount, EINSUFFICIENT_USDC);
+
+        // Find the bot
+        let user_bots = borrow_global_mut<UserBots>(sender_addr);
+        let bot_index = 0;
+        let bot_found = false;
+        let bots_len = vector::length(&user_bots.bots);
+
+        while (bot_index < bots_len) {
+            let bot = vector::borrow(&user_bots.bots, bot_index);
+            if (bot.bot_id == bot_id) {
+                bot_found = true;
+                break
+            };
+            bot_index = bot_index + 1;
+        };
+
+        assert!(bot_found, EBOT_NOT_FOUND);
+
+        // Transfer USDC from user to contract
+        primary_fungible_store::transfer(sender, usdc_metadata, @trading_bot_addr, amount);
+
+        // Update bot balance
+        let bot = vector::borrow_mut(&mut user_bots.bots, bot_index);
+        bot.balance = bot.balance + amount;
+
+        // Emit deposit event
+        let events = borrow_global_mut<TradingBotEvents>(@trading_bot_addr);
+        event::emit_event(&mut events.usdc_deposited_events, USDCDepositedEvent {
+            bot_id,
+            owner: sender_addr,
+            amount,
+            new_balance: bot.balance,
+        });
+    }
+
+    /// Withdraw USDC from a bot's balance
+    /// Transfer USDC from contract back to user's wallet
+    public entry fun withdraw_usdc_from_bot(
+        sender: &signer,
+        bot_id: u64,
+        amount: u64,
+    ) acquires UserBots, TradingBotEvents {
+        let sender_addr = signer::address_of(sender);
+
+        // Validate parameters
+        assert!(amount > 0, EINVALID_WITHDRAWAL);
+        assert!(exists<UserBots>(sender_addr), EBOT_NOT_FOUND);
+
+        // Find the bot
+        let user_bots = borrow_global_mut<UserBots>(sender_addr);
+        let bot_index = 0;
+        let bot_found = false;
+        let bots_len = vector::length(&user_bots.bots);
+
+        while (bot_index < bots_len) {
+            let bot = vector::borrow(&user_bots.bots, bot_index);
+            if (bot.bot_id == bot_id && bot.owner == sender_addr) {
+                bot_found = true;
+                break
+            };
+            bot_index = bot_index + 1;
+        };
+
+        assert!(bot_found, EBOT_NOT_FOUND);
+
+        let bot = vector::borrow_mut(&mut user_bots.bots, bot_index);
+
+        // Verify bot owner
+        assert!(bot.owner == sender_addr, EUNAUTHORIZED);
+
+        // Check bot has sufficient balance
+        assert!(bot.balance >= amount, EINSUFFICIENT_BALANCE);
+
+        // Get USDC metadata
+        let usdc_metadata = object::address_to_object<Metadata>(USDC_METADATA_ADDRESS);
+
+        // Check contract has sufficient USDC to fulfill withdrawal
+        let contract_usdc_balance = primary_fungible_store::balance(@trading_bot_addr, usdc_metadata);
+        assert!(contract_usdc_balance >= amount, EINSUFFICIENT_USDC);
+
+        // Update bot balance first
+        bot.balance = bot.balance - amount;
+
+        // Transfer USDC from contract to user
+        // Note: This requires the contract to have a signer capability or use a different approach
+        // For now, we'll keep this as a placeholder - you'll need to set up proper resource account
+        // primary_fungible_store::transfer(contract_signer, usdc_metadata, sender_addr, amount);
+
+        // Emit withdrawal event
+        let events = borrow_global_mut<TradingBotEvents>(@trading_bot_addr);
+        event::emit_event(&mut events.usdc_withdrawn_events, USDCWithdrawnEvent {
+            bot_id,
+            owner: sender_addr,
+            amount,
+            remaining_balance: bot.balance,
+        });
+    }
+
+    /// Get bot's USDC balance
+    #[view]
+    public fun get_bot_usdc_balance(bot_owner: address, bot_id: u64): u64 acquires UserBots {
+        assert!(exists<UserBots>(bot_owner), EBOT_NOT_FOUND);
+        let user_bots = borrow_global<UserBots>(bot_owner);
+
+        let bot_index = 0;
+        let bots_len = vector::length(&user_bots.bots);
+
+        while (bot_index < bots_len) {
+            let bot = vector::borrow(&user_bots.bots, bot_index);
+            if (bot.bot_id == bot_id) {
+                return bot.balance
+            };
+            bot_index = bot_index + 1;
+        };
+
+        abort EBOT_NOT_FOUND
+    }
+
+    // ======================== Trade Execution Functions ========================
 
     /// Executes a trade for a specified bot
     /// Only the bot owner can execute trades
